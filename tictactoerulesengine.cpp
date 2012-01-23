@@ -1,43 +1,99 @@
 #include "tictactoerulesengine.h"
 
-#include "TicTacToeRulesEngine.h"
+bool TicTacToeRulesEngine::isValidMove(const Grid *currentState, const Grid *nextState, Elements::PlayerType currentPlayer)
+{
+    //If exactly one less square is empty.
+    if(currentState->numPiecesOfType(EMPTY) != nextState->numPiecesOfType(EMPTY) + 1)
+    {
+        return false;
+    }
+    //and there is only one difference between the boards.
+    else if(currentState->numDifferences(nextState) != 1)
+    {
+        return false;
+    }
+    //Then nextState is valid.
+    return true;
+}
 
-GameState TicTacToeRulesEngine::testBoard(const Grid &boardState)
+void TicTacToeRulesEngine::genNextMoves(const Grid *current, Grid **nextMoves, Elements::PlayerType currentPlayer, int &numNextStates)
+{
+    numNextStates = current->numPiecesOfType(Elements::EMPTY);
+
+    if(testBoard(current) != NORMAL)
+    {
+        numNextStates = 0;
+        nextMoves = NULL;
+        return;
+    }
+
+    nextMoves = new *TicTacToeGrid[numNextStates];
+
+    for(int x = 0; x < numNextStates; ++x)
+    {
+        nextMoves[x] = new TicTacToeGrid();
+        *nextMoves[x] = *current;
+    }
+
+    int stateCount = 0;
+
+    for(int x = 0; x < 3; ++x)
+    {
+        for(int y = 0; y < 3; ++y)
+        {
+            //Keep looping through the squares.  There should be one possible move for each empty
+            //space.  StateCount will only increment when an empty space is filled.  Once there are
+            //no more spaces, the loop will break.
+            if(stateCount >= numNextStates)
+                return;
+
+            if(nextMoves[stateCount]->squares[x][y] == EMPTY)
+            {
+                ++stateCount;
+                nextMoves[stateCount]->squares[x][y] == (Elements::GenericPieceType)currentPlayer;
+            }
+        }
+    }
+
+    return;
+}
+
+GameState TicTacToeRulesEngine::testBoard(const Grid *boardState)
 {
     int x, y;
 
     //Check from the middle of the board out.
-    if(boardState.squares[1][1] != EMPTY)
+    if(boardState->squares[1][1] != EMPTY)
     {
         //Check the center horizontal row.
-        if(boardState.squares[0][1] == boardState.squares[1][1] && boardState.squares[1][1] == boardState.squares[2][1])
-            return (GameState)boardState.squares[1][1];
+        if(boardState->squares[0][1] == boardState->squares[1][1] && boardState->squares[1][1] == boardState->squares[2][1])
+            return (GameState)boardState->squares[1][1];
         //Check diagonal lines and vertical center.
         for(x = 0; x < 3; ++x)
         {
-            if(boardState.squares[x][0] == boardState.squares[1][1] && boardState.squares[2 - x][2] == boardState.squares[1][1])
+            if(boardState->squares[x][0] == boardState->squares[1][1] && boardState->squares[2 - x][2] == boardState->squares[1][1])
                 //Cast the center square to GameState to simplify algorithm.
-                return (GameState)boardState.squares[1][1];
+                return (GameState)boardState->squares[1][1];
         }
     }
 
     //Check the squares connected to the top left corner.
-    if(boardState.squares[0][0] != EMPTY)
+    if(boardState->squares[0][0] != EMPTY)
     {
-        if(boardState.squares[0][1] == boardState.squares[0][0] && boardState.squares[0][2] == boardState.squares[0][0] ||
-                boardState.squares[1][0] == boardState.squares[0][0] && boardState.squares[2][0] == boardState.squares[0][0])
+        if(boardState->squares[0][1] == boardState->squares[0][0] && boardState->squares[0][2] == boardState->squares[0][0] ||
+                boardState->squares[1][0] == boardState->squares[0][0] && boardState->squares[2][0] == boardState->squares[0][0])
         {
-            return (GameState)boardState.squares[0][0];
+            return (GameState)boardState->squares[0][0];
         }
     }
 
     //Check the squares connected to the bottom right corner.
-    if(boardState.squares[2][2] != EMPTY)
+    if(boardState->squares[2][2] != EMPTY)
     {
-        if(boardState.squares[2][0] == boardState.squares[2][2] && boardState.squares[2][1] == boardState.squares[2][2] ||
-                boardState.squares[0][2] == boardState.squares[2][2] && boardState.squares[1][2] == boardState.squares[2][2])
+        if(boardState->squares[2][0] == boardState->squares[2][2] && boardState->squares[2][1] == boardState->squares[2][2] ||
+                boardState->squares[0][2] == boardState->squares[2][2] && boardState->squares[1][2] == boardState->squares[2][2])
         {
-            return (GameState)boardState.squares[0][0];
+            return (GameState)boardState->squares[0][0];
         }
     }
 
@@ -47,16 +103,16 @@ GameState TicTacToeRulesEngine::testBoard(const Grid &boardState)
         for(y = 0; y < 3; ++y)
         {
             //This is true because if a player had three in a row, it would have been caught before this loop ran.
-            if(boardState.squares[x][y] == EMPTY)
+            if(boardState->squares[x][y] == EMPTY)
                 return NORMAL;
         }
     }
 
     //This will only occur if all the above checks fail.
-    return CATSGAME;
+    return DRAW;
 }
 
-float TicTacToeRulesEngine::worthOfState(const Grid &boardState, PlayerType currentPlayer, GameState currentState)
+float TicTacToeRulesEngine::worthOfState(const Grid *boardState, PlayerType currentPlayer, GameState currentState)
 {
     if(currentState != NORMAL)
     {
@@ -94,11 +150,11 @@ float TicTacToeRulesEngine::endStateWorth(PlayerType currentPlayer, GameState cu
 }
 
 //Find the worth of a state that is not an end game condition.
-float TicTacToeRulesEngine::normalStateWorth(const Grid &boardState, PlayerType currentPlayer)
+float TicTacToeRulesEngine::normalStateWorth(const Grid *boardState, PlayerType currentPlayer)
 {
     float stateWorth;
     //Store the number of empty spaces.
-    int numEmpty = boardState.numSquaresOfType(EMPTY);
+    int numEmpty = boardState->numSquaresOfType(EMPTY);
 
     //Empty board
     if(numEmpty == 9)
@@ -125,7 +181,7 @@ float TicTacToeRulesEngine::normalStateWorth(const Grid &boardState, PlayerType 
 }
 
 //Find the worth of a player's first move.
-float TicTacToeRulesEngine::firstMoveWorth(const Grid &boardState, PlayerType currentPlayer)
+float TicTacToeRulesEngine::firstMoveWorth(const Grid *boardState, PlayerType currentPlayer)
 {
     //X, Y
     int x, y;
@@ -133,7 +189,7 @@ float TicTacToeRulesEngine::firstMoveWorth(const Grid &boardState, PlayerType cu
     {
         for(y = 0; y < 3; ++y)
         {
-            if(boardState.squares[x][y] == currentPlayer)
+            if(boardState->squares[x][y] == currentPlayer)
             {
                 //Store the x-y coord of the move.
                 //this will only break the inner for loop.
@@ -176,7 +232,7 @@ float TicTacToeRulesEngine::firstMoveWorth(const Grid &boardState, PlayerType cu
 }
 
 //Find the worth of a player's second move.
-float TicTacToeRulesEngine::secondMoveWorth(const Grid &boardState, PlayerType currentPlayer)
+float TicTacToeRulesEngine::secondMoveWorth(const Grid *boardState, PlayerType currentPlayer)
 {
     //x1 and y1 are used for the opponent.
     //x2 and y2 are used for the player.
@@ -189,7 +245,7 @@ float TicTacToeRulesEngine::secondMoveWorth(const Grid &boardState, PlayerType c
         {
             //Break if the opponent's spot is found.
             //This will keep the current x and y coords.
-            if(boardState.squares[x1][y1] != EMPTY && boardState.squares[x1][y1] != currentPlayer)
+            if(boardState->squares[x1][y1] != EMPTY && boardState->squares[x1][y1] != currentPlayer)
             {
                 goto LABEL_FINISH_OPPONENT_LOOP;
             }
@@ -205,7 +261,7 @@ float TicTacToeRulesEngine::secondMoveWorth(const Grid &boardState, PlayerType c
         {
             //Break if the player's spot is found.
             //This will keep the current x and y coords.
-            if(boardState.squares[x2][y2] == currentPlayer)
+            if(boardState->squares[x2][y2] == currentPlayer)
             {
                 goto LABEL_FINISH_PLAYER_LOOP;
             }
@@ -272,7 +328,7 @@ float TicTacToeRulesEngine::secondMoveWorth(const Grid &boardState, PlayerType c
 }
 
 //Find the worth of a player's move at third or later.
-float TicTacToeRulesEngine::laterMoveWorth(const Grid &boardState, PlayerType currentPlayer)
+float TicTacToeRulesEngine::laterMoveWorth(const Grid *boardState, PlayerType currentPlayer)
 {
     PlayerType opponent;
     if(currentPlayer == XPLAYER)
@@ -312,7 +368,7 @@ float TicTacToeRulesEngine::laterMoveWorth(const Grid &boardState, PlayerType cu
 
 
 //Count two-in-a-row for the given player type.
-int TicTacToeRulesEngine::countDoubleSpace(const Grid &boardState, PlayerType toCount, bool countBlocked)
+int TicTacToeRulesEngine::countDoubleSpace(const Grid *boardState, PlayerType toCount, bool countBlocked)
 {
     int x, y;
     int count = 0;
@@ -322,20 +378,20 @@ int TicTacToeRulesEngine::countDoubleSpace(const Grid &boardState, PlayerType to
         //Don't do this for the top center.  Avoid doing the vertical calculation twice.
         if(x != 1)
         {
-            if((boardState.squares[x][0] == toCount && boardState.squares[x][1] == toCount && boardState.squares[x][2] != toCount) ||
-               (boardState.squares[x][0] == toCount && boardState.squares[x][1] != toCount && boardState.squares[x][2] == toCount) ||
-               (boardState.squares[x][0] != toCount && boardState.squares[x][1] == toCount && boardState.squares[x][2] == toCount) )
+            if((boardState->squares[x][0] == toCount && boardState->squares[x][1] == toCount && boardState->squares[x][2] != toCount) ||
+               (boardState->squares[x][0] == toCount && boardState->squares[x][1] != toCount && boardState->squares[x][2] == toCount) ||
+               (boardState->squares[x][0] != toCount && boardState->squares[x][1] == toCount && boardState->squares[x][2] == toCount) )
             {
                 if(countBlocked)
                     //Increment number of sets only if one of these is not empty and is not the type to count.
-                    if((boardState.squares[x][0] != EMPTY && boardState.squares[x][0] != toCount) ||
-                       (boardState.squares[x][1] != EMPTY && boardState.squares[x][1] != toCount) ||
-                       (boardState.squares[x][2] != EMPTY && boardState.squares[x][2] != toCount) )
+                    if((boardState->squares[x][0] != EMPTY && boardState->squares[x][0] != toCount) ||
+                       (boardState->squares[x][1] != EMPTY && boardState->squares[x][1] != toCount) ||
+                       (boardState->squares[x][2] != EMPTY && boardState->squares[x][2] != toCount) )
                         ++count;
                 else
                 {
                     //If counting open sets, only increment if one of these is empty.
-                    if(boardState.squares[x][0] == EMPTY || boardState.squares[x][1] == EMPTY || boardState.squares[x][2] == EMPTY)
+                    if(boardState->squares[x][0] == EMPTY || boardState->squares[x][1] == EMPTY || boardState->squares[x][2] == EMPTY)
                         //Increment number of sets.
                         ++count;
                 }
@@ -344,20 +400,20 @@ int TicTacToeRulesEngine::countDoubleSpace(const Grid &boardState, PlayerType to
         //If top == mid & bottom is different or
         //if top == bottom & mid is different or
         //if mid == bottom & top is different
-        if( (boardState.squares[x][0] == toCount && boardState.squares[1][1] == toCount && boardState.squares[2 - x][2] != toCount) ||
-            (boardState.squares[x][0] == toCount && boardState.squares[1][1] != toCount && boardState.squares[2 - x][2] == toCount) ||
-            (boardState.squares[x][0] != toCount && boardState.squares[1][1] == toCount && boardState.squares[2 - x][2] == toCount) )
+        if( (boardState->squares[x][0] == toCount && boardState->squares[1][1] == toCount && boardState->squares[2 - x][2] != toCount) ||
+            (boardState->squares[x][0] == toCount && boardState->squares[1][1] != toCount && boardState->squares[2 - x][2] == toCount) ||
+            (boardState->squares[x][0] != toCount && boardState->squares[1][1] == toCount && boardState->squares[2 - x][2] == toCount) )
         {
             if(countBlocked)
                 //Increment number of sets.
-                if((boardState.squares[x][0] != EMPTY && boardState.squares[x][0] != toCount ) ||
-                   (boardState.squares[1][1] != EMPTY && boardState.squares[1][1] != toCount ) ||
-                   (boardState.squares[2 - x][2] != EMPTY && boardState.squares[2 - x][2] != toCount ) )
+                if((boardState->squares[x][0] != EMPTY && boardState->squares[x][0] != toCount ) ||
+                   (boardState->squares[1][1] != EMPTY && boardState->squares[1][1] != toCount ) ||
+                   (boardState->squares[2 - x][2] != EMPTY && boardState->squares[2 - x][2] != toCount ) )
                     ++count;
             else
             {
                 //If counting open sets, only increment if one of these is empty.
-                if(boardState.squares[x][0] == EMPTY || boardState.squares[2 - x][2] == EMPTY || boardState.squares[1][1] == EMPTY)
+                if(boardState->squares[x][0] == EMPTY || boardState->squares[2 - x][2] == EMPTY || boardState->squares[1][1] == EMPTY)
                     //Increment number of sets.
                     ++count;
             }
@@ -367,20 +423,20 @@ int TicTacToeRulesEngine::countDoubleSpace(const Grid &boardState, PlayerType to
     //Next, check for horizontal sets.
     for(y = 0; y < 3; ++y)
     {
-        if((boardState.squares[0][y] == toCount && boardState.squares[1][y] == toCount && boardState.squares[2][y] != toCount) ||
-           (boardState.squares[0][y] == toCount && boardState.squares[1][y] != toCount && boardState.squares[2][y] == toCount) ||
-           (boardState.squares[0][y] != toCount && boardState.squares[1][y] == toCount && boardState.squares[2][y] == toCount) )
+        if((boardState->squares[0][y] == toCount && boardState->squares[1][y] == toCount && boardState->squares[2][y] != toCount) ||
+           (boardState->squares[0][y] == toCount && boardState->squares[1][y] != toCount && boardState->squares[2][y] == toCount) ||
+           (boardState->squares[0][y] != toCount && boardState->squares[1][y] == toCount && boardState->squares[2][y] == toCount) )
         {
             if(countBlocked)
             {
                 //Increment number of sets.
-                if(boardState.squares[0][y] == EMPTY || boardState.squares[1][y] == EMPTY || boardState.squares[2][y] == EMPTY)
+                if(boardState->squares[0][y] == EMPTY || boardState->squares[1][y] == EMPTY || boardState->squares[2][y] == EMPTY)
                     ++count;
             }
             else if(!countBlocked)
             {
                 //If counting open sets, only increment if one of these is empty.
-                if(boardState.squares[0][y] == EMPTY || boardState.squares[1][y] == EMPTY || boardState.squares[2][y] == EMPTY)
+                if(boardState->squares[0][y] == EMPTY || boardState->squares[1][y] == EMPTY || boardState->squares[2][y] == EMPTY)
                     //Increment number of sets.
                     ++count;
             }
@@ -390,3 +446,68 @@ int TicTacToeRulesEngine::countDoubleSpace(const Grid &boardState, PlayerType to
     return count;
 }
 
+bool TicTacToeRulesEngine::gridToDoubleArray(const Grid *grid, double *array, PlayerType player, const int index, const int numElements)
+{
+    //Iterate over each space.
+    if(width * height <= numElements - index)
+    {
+        for(int x = 0; x < GRID_WIDTH; ++x)
+        {
+            for(int y = 0; y < GRID_HEIGHT; ++y)
+            {
+                //Convert the square to a double precision value.
+                array[index] = playerTypeToDouble(grid.squares[x][y], player);
+                ++index;
+            }
+        }
+        //Copy succeeded.
+        return true;
+    }
+    else
+    {
+        //Copy failed.
+        return false;
+    }
+}
+
+//Convert a piece type to its double precision equivalent, relative to the current player.
+double TicTacToeRulesEngine::pieceTypeToDouble(PlayerType player, GenericPieceType piece)
+{
+    //Blank space.
+    if(piece == EMPTY)
+        return EMPTY_SQUARE;
+    //Player's square.
+    else if(input == (GenericPieceType)player)
+        return FRIENDLY_SQUARE;
+    //Opponent's square.
+    else
+        return OPPONENT_SQUARE;
+}
+
+//Convert a double precision value to its piece type equivalent, relative to the current player.
+Elements::GenericPieceType TicTacToeRulesEngine::doubleToPieceType(PlayerType player, double value)
+{
+    //If input is too low to be an empty value,
+    //It's for an opponent.
+    if(value < EMPTY_LOWER_BOUND)
+    {
+        if(player == PLAYER_1)
+            return (GenericPieceType)O_PIECE;
+        else
+            return (GenericPieceType)X_PIECE;
+    }
+    //If it's lower than the value for a friendly space,
+    //It's empty.
+    else if(input <= EMPTY_UPPER_BOUND)
+    {
+        return EMPTY;
+    }
+    //Otherwise, it's a friendly space.
+    else
+    {
+        if(player == PLAYER_1)
+            return (GenericPieceType)X_PIECE;
+        else
+            return (GenericPieceType)O_PIECE;
+    }
+}

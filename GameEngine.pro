@@ -31,7 +31,13 @@ SOURCES += main.cpp\
     activation.cpp \
     gamegridview.cpp \
     controlpanelview.cpp \
-    aiplayer.cpp
+    tictactoemainwindow.cpp \
+    gridsquare.cpp \
+    statstructures.cpp \
+    tictactoegamedata.cpp \
+    neuralnetbuilder.cpp \
+    mainwidget.cpp \
+    viewbuilder.cpp
 
 HEADERS  += mainwindow.h \
     gamecontroller.h \
@@ -57,7 +63,27 @@ HEADERS  += mainwindow.h \
     activation.h \
     macros.h \
     gamegridview.h \
-    controlpanelview.h
+    controlpanelview.h \
+    tictactoemainwindow.h \
+    gridsquare.h \
+    tictactoegamedata.h \
+    neuralnetbuilder.h \
+    mainwidget.h \
+    viewbuilder.h
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

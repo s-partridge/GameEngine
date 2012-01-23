@@ -15,10 +15,9 @@ public:
     AITrainingStats getP2TrainingStats() { return m_p2Training; }
 
     void addToGameStats(GameStats currentGame);
-    void addToTotalStats(GameStats total);
 
-    void addToP1TrainingStats(AITrainingStats stats);
-    void addToP2TrainingStats(AITrainingStats stats);
+    void addToP1TrainingStats(AITrainingStats stats) { m_p1Training += stats; }
+    void addToP2TrainingStats(AITrainingStats stats) { m_p2Training += stats; }
 
     void resetCurrentStats() { m_currentGame.init(); }
     void resetTotalStats() { m_totalStats.init(); }

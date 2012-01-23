@@ -7,7 +7,7 @@
 class Neuron
 {
 public:
-    Neuron() {}
+    Neuron() : m_numWeights(0), m_numInputs(0) {}
 
     int init(const int numWeights);
 
@@ -20,6 +20,8 @@ public:
     void setWeight(const int index, const double value) { m_weights[index] = value; }
     double getWeight(const int index) { return m_weights[index]; }
     double *getWeights() { return m_weights; }
+
+    int getNumWeights() { return m_numWeights; }
 
     //Set and get the bias value.
     void setBias(const double value) { m_weights[m_numWeights - 1] = value; }
@@ -34,6 +36,8 @@ public:
     double getInput(const int index) { return m_inputs[index]; }
     double *getInputs() { return m_inputs; }
 
+    int getNumInputs() { return m_numInputs; }
+
     double getOutput() { return m_output; }
 
     //Multiply each input by its corresponding weight, sum those results,
@@ -42,8 +46,8 @@ public:
 
     //Call the derivative and activation functions from the function object passed in.
     //Allows for an easy method of swapping activation functions.
-    double activation(const ActivationFunctor *activate);
-    double derivative(const ActivationFunctor *derivate);
+    double activation(const ActivationFunctor *activate) { activate->activation(summation()); }
+    double derivative(const ActivationFunctor *derivate) { derivate->simplifiedDerivative(m_output); }
 
 private:
     double *m_inputs;

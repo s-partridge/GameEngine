@@ -12,6 +12,8 @@
 #ifndef TRAINER_H
 #define TRAINER_H
 
+#include "neuralnetwork.h"
+
 class Trainer
 {
     int m_trainingIterations;

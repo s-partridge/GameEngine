@@ -1,10 +1,10 @@
 #include <QtGui/QApplication>
-#include "mainwindow.h"
+#include "tictactoemainwindow.h"
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    MainWindow w;
+    TicTacToeMainWindow w;
     w.show();
 
     return a.exec();

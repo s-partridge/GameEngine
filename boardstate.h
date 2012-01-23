@@ -8,12 +8,16 @@ class BoardState
 {
 public:
     //Generates one board state.
-    BoardState(Grid *currentGrid, BoardState *parent, int currentPlayer, const RulesEngine *rulesEngine);
+    BoardState(const Grid *currentGrid, BoardState *parent, int currentPlayer, RulesEngine *rulesEngine);
     //Generates a board state and child nodes for numLayersToBuild iterations.
-    BoardState(Grid *currentGrid, BoardState *parent, int currentPlayer, const RulesEngine *rulesEngine, int numLayersToBuild);
+    BoardState(const Grid *currentGrid, BoardState *parent, int currentPlayer, const RulesEngine *rulesEngine, int numLayersToBuild);
+
+    void purge();
+
+    ~BoardState() { purge(); }
 
     //Generate child nodes from this state.
-    void genNextStates(const RulesEngine *rulesEngine, int numLayers);
+    void genNextStates(int numLayers, const RulesEngine *rulesEngine);
 
     //Set next best move based on the moveWorth of each state in nextStates.
     void setNextBestMove();
@@ -23,6 +27,7 @@ public:
     BoardState *getParent() { return m_parent; }
     BoardState **getNextStates() { return m_nextStates; }
     BoardState *getNextBestState() { return m_nextBestMove; }
+    int getNumNextStates() { return m_numNextStates; }
     //Return the index of the next best move.
     int getNextBestStateIndex() { return getIndexOfState(m_nextBestMove->getCurrentGrid()); }
     BoardState *getState(int index) { return m_nextStates[index]; }
@@ -31,6 +36,7 @@ public:
     //Search nextStates for a matching grid.  Return the index if it exists, -1 otherwise.
     int getIndexOfState(const Grid *grid);
 
+    void deleteNextStates();
 
 private:
     Grid *m_currentGrid;
@@ -38,7 +44,6 @@ private:
     BoardState **m_nextStates;
     BoardState *m_nextBestMove;
     int m_numNextStates;
-    int m_nextBestMoveIndex;
     int m_currentPlayer;
     double m_moveWorth;
 };

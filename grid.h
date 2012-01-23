@@ -11,24 +11,34 @@
 #ifndef GRID_H
 #define GRID_H
 
-class Grid
+//Apparently required for NULL
+#include <stddef.h>
+
+#include "datatypes.h"
+
+struct Grid
 {
-    int **squares;
-public:
-    virtual Grid() {}
+    Elements::GenericPieceType **squares;
+    int width, height;
+
+    Grid() { squares = NULL; }
+
     virtual void init() = 0;
 
     void purge();
 
+    ~Grid() { purge(); }
+
     //Count the number of instances of a specific piece.
-    int numPiecesOfType(int pieceType);
+    int numPiecesOfType(Elements::GenericPieceType pieceType);
 
     //Count the number of differing squares between this and rhs.
     int numDifferences(const Grid *rhs);
 
     //Comparison operator overloads.
+    Grid &operator=(const Grid &rhs);
     bool operator==(const Grid &rhs);
-    bool operator!=(const Grid &rhs) { return ! (this == rhs); }
+    bool operator!=(const Grid &rhs) { return ! (*this == rhs); }
 };
 
 #endif // GRID_H

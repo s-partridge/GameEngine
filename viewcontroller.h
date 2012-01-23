@@ -14,6 +14,10 @@ class ViewController : public QObject
     Q_OBJECT
 public:
     explicit ViewController(QObject *parent = 0);
+
+    void setGameController(GameController *controller) { m_gameController = controller; }
+    void setMainView(MainWindow *window) { m_mainView = window; }
+
     void newGame();
     void tellMakeNextMove(const Grid *nextMove);
     void gameOver();
@@ -32,11 +36,11 @@ signals:
     void clearTextFields();
     void resetGame();
 
-public slots:
+//public slots:
 
 private:
-    MainWindow *mainView;
-    GameController *gameController;
+    MainWindow *m_mainView;
+    GameController *m_gameController;
 };
 
 #endif // VIEWCONTROLLER_H

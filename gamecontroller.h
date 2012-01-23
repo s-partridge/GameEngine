@@ -5,40 +5,52 @@
 #include "human.h"
 #include "neuralnetplayer.h"
 #include "datacontroller.h"
-#include "viewcontroller.h"
+#include "neuralnetbuilder.h"
+#include "trainer.h"
+#include "rulesengine.h"
+
+using namespace std;
+
 class GameController
 {
 public:
     GameController();
 
-    //TODO: figure out exact parameters for this.
-//    void loadNNPlayer(string filename, ..., int player);
+    ~GameController() { purge(); }
 
-    void setViewController(ViewController *controller);
-    void setDataController(dataController *controller);
+    void purge();
+
+    //TODO: create or load a neural network from a file.
+    void createNNPlayer(Elements::PlayerType player, string filename);
+    void loadNNPlayer(Elements::PlayerType player, string filename);
+
+    void setDataController(DataController *controller) { m_dataController = controller; }
+    void setAIBuilder(NeuralNetBuider *AIBuilder) { m_AIBuilder = AIBuilder; }
+    void setAITrainer(Trainer *trainer) { m_AITrainer = trainer; }
+    void setRulesEngine(RulesEngine *rulesEngine) { m_rulesEngine = rulesEngine; }
 
     //Try to make move based on passed grid and player ID.
     //If player is AI, move will be ignored and currentState
     //from the move tree will be used instead.
-    Grid *attemptMove(const Grid *move, int player);
+    Grid *attemptMove(const Grid *move, Elements::PlayerType player);
 
     void resetGame();
     void undoMove();
 
-    void tellGameOver();
-    void tellNewGame();
-
     //Trains the AI matching the given player ID.
     //Does nothing if player is human.
-    void trainAI(int player);
+    void trainAI(Elements::PlayerType player);
 
     //Switches the m_player pointer to m_NNPlayer from m_human.
-    void swapHumanForAI(int player);
+    void swapHumanForAI(Elements::PlayerType player);
     //Switches the m_player pointer from m_NNPlayer to m_human.
-    void swapAIForHuman(int player);
+    void swapAIForHuman(Elements::PlayerType player);
+
+    //Change currentPlayer from player1 to player2 or vice versa.
+    void switchCurrentPlayer();
 
     //Returns true if the referenced player is not human, false otherwise.
-    bool isAI(int player);
+    bool isAI(Elements::PlayerType player);
 
 private:
     Player *m_player1;
@@ -51,10 +63,12 @@ private:
 
     Human *m_human1;
     Human *m_human2;
-    Player *currentPlayer;
+    Player *m_currentPlayer;
 
-    DataController *dataController;
-    ViewController *viewController;
+    DataController *m_dataController;
+    NeuralNetBuilder *m_AIBuilder;
+    Trainer *m_AITrainer;
+    RulesEngine *m_rulesEngine;
 };
 
 #endif // GAMECONTROLLER_H
