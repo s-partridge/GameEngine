@@ -1,6 +1,9 @@
 #ifndef GAMECONTROLLER_H
 #define GAMECONTROLLER_H
 
+//For typeid keyword and related functions.
+#include <typeinfo>
+
 #include <string>
 #include "human.h"
 #include "neuralnetplayer.h"
@@ -8,6 +11,7 @@
 #include "neuralnetbuilder.h"
 #include "trainer.h"
 #include "rulesengine.h"
+#include "macros.h"
 
 using namespace std;
 
@@ -24,18 +28,25 @@ public:
     void createNNPlayer(Elements::PlayerType player, string filename);
     void loadNNPlayer(Elements::PlayerType player, string filename);
 
+    //Save a neural network, given a new file name.
+    void saveNNPlayer(Elements::PlayerType player, string filename);
+    //Save a neural network under the existing file name.
+    void saveNNPlayer(Elements::PlayerType player);
+
     void setDataController(DataController *controller) { m_dataController = controller; }
-    void setAIBuilder(NeuralNetBuider *AIBuilder) { m_AIBuilder = AIBuilder; }
+    void setAIBuilder(NeuralNetBuilder *AIBuilder) { m_AIBuilder = AIBuilder; }
     void setAITrainer(Trainer *trainer) { m_AITrainer = trainer; }
     void setRulesEngine(RulesEngine *rulesEngine) { m_rulesEngine = rulesEngine; }
 
     //Try to make move based on passed grid and player ID.
     //If player is AI, move will be ignored and currentState
     //from the move tree will be used instead.
-    Grid *attemptMove(const Grid *move, Elements::PlayerType player);
+    const Grid *attemptMove(const Grid *move);
 
     void resetGame();
     void undoMove();
+
+    bool isGameOver(const Grid *move) { return m_dataController->isGameOver(move); }
 
     //Trains the AI matching the given player ID.
     //Does nothing if player is human.
@@ -60,6 +71,11 @@ private:
     string m_NN2Filename;
     NeuralNetPlayer *m_NNPlayer1;
     NeuralNetPlayer *m_NNPlayer2;
+
+    bool p1IsAI;
+    bool p2IsAI;
+
+    bool isP1Turn;
 
     Human *m_human1;
     Human *m_human2;

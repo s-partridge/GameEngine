@@ -7,13 +7,13 @@
 class Neuron
 {
 public:
-    Neuron() : m_numWeights(0), m_numInputs(0) {}
+    Neuron() : m_inputs(NULL), m_weights(NULL), m_numInputs(0), m_numWeights(0) {}
 
     int init(const int numWeights);
 
     void purge();
 
-    ~Neuron();
+    ~Neuron() { purge(); }
 
     //Set and get weight values.
     void setWeights(const double *weights);
@@ -46,8 +46,9 @@ public:
 
     //Call the derivative and activation functions from the function object passed in.
     //Allows for an easy method of swapping activation functions.
-    double activation(const ActivationFunctor *activate) { activate->activation(summation()); }
-    double derivative(const ActivationFunctor *derivate) { derivate->simplifiedDerivative(m_output); }
+    double activation(const ActivationFunctor *activate);
+
+    double derivative(const ActivationFunctor *derivate);
 
 private:
     double *m_inputs;

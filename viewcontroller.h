@@ -3,11 +3,12 @@
 
 #include <QObject>
 #include <QString>
+
 #include <string>
+
 #include "mainwindow.h"
 #include "gamecontroller.h"
 #include "grid.h"
-#include "trainer.h"
 
 class ViewController : public QObject
 {
@@ -16,31 +17,35 @@ public:
     explicit ViewController(QObject *parent = 0);
 
     void setGameController(GameController *controller) { m_gameController = controller; }
-    void setMainView(MainWindow *window) { m_mainView = window; }
+    void setMainView(MainWindow *window);
 
-    void newGame();
-    void tellMakeNextMove(const Grid *nextMove);
-    void gameOver();
-
-    void swapInHuman(int playerID);
-    void swapInAI(int playerID);
-    void loadAIFromFile(int playerID, string fileName);
-    void buildNewAI(int playerID, string fileName);
-    void trainAI(int playerID, Trainer *trainer);
-
-    void saveAI(int playerID);
-    void saveAI(int playerID, string fileName);
+    void saveAI(Elements::PlayerType playerID);
+    void saveAI(Elements::PlayerType playerID, string fileName);
 
 signals:
     void updateGame(const Grid *nextMove);
     void clearTextFields();
     void resetGame();
+    void gameOver();
+    void invalidMove();
 
-//public slots:
+public slots:
+    void nextMove(const Grid *nextMove);
+
+private slots:
+    void swapInHuman(Elements::PlayerType playerID) { m_gameController->swapAIForHuman(playerID); }
+    void swapInAI(Elements::PlayerType playerID) { m_gameController->swapHumanForAI(playerID); }
+    void loadAIFromFile(Elements::PlayerType playerID, QString filename) { m_gameController->loadNNPlayer(playerID, filename.toStdString()); }
+    void buildNewAI(Elements::PlayerType playerID, QString filename) { m_gameController->createNNPlayer(playerID, filename.toStdString()); }
+    void trainAI(Elements::PlayerType playerID) { m_gameController->trainAI(playerID); }
+    void newGame();
 
 private:
+    bool isGameOver(const Grid *move) { return m_gameController->isGameOver(move); }
+
     MainWindow *m_mainView;
     GameController *m_gameController;
+    bool m_isGameOver;
 };
 
 #endif // VIEWCONTROLLER_H

@@ -1,16 +1,21 @@
 #ifndef BOARDSTATE_H
 #define BOARDSTATE_H
 
+#include <fstream>
+
+using namespace std;
+
 #include "grid.h"
 #include "rulesengine.h"
+
 
 class BoardState
 {
 public:
     //Generates one board state.
-    BoardState(const Grid *currentGrid, BoardState *parent, int currentPlayer, RulesEngine *rulesEngine);
+    BoardState(Grid *currentGrid, BoardState *parent, Elements::PlayerType currentPlayer, const RulesEngine *rulesEngine);
     //Generates a board state and child nodes for numLayersToBuild iterations.
-    BoardState(const Grid *currentGrid, BoardState *parent, int currentPlayer, const RulesEngine *rulesEngine, int numLayersToBuild);
+    BoardState(Grid *currentGrid, BoardState *parent, Elements::PlayerType currentPlayer, const RulesEngine *rulesEngine, int numLayersToBuild);
 
     void purge();
 
@@ -22,19 +27,36 @@ public:
     //Set next best move based on the moveWorth of each state in nextStates.
     void setNextBestMove();
 
+    //Get the current player.
+    Elements::PlayerType getCurrentPlayer() { return m_currentPlayer; }
+
+    //Drill down through the move tree, finding the worth of the current state.
+    //If it is an end state, and that end state is a win for the current player,
+    //increment the worth of the state.
+    //Should replace getMoveWorth in the future.
+    virtual int getStateWorth(const RulesEngine *rulesEngine, fstream &toWrite);
+    //Uses the same algorithm as getStateWorth(), but creates and destroys each layer.
+    //In this way, a huge amount of memory is not exhausted in trying to build the table.
+    //Assumes that nextStates is null for the purpose of speed.
+    int getStateWorthRecurse(const RulesEngine *rulesEngine, fstream &toWrite);
+
+    int getP1StateWorth() { return m_P1StateWorth; }
+    int getP2StateWorth() { return m_P2StateWorth; }
+    int getLastSquareMoved() { return m_lastSquare; }
+
     double getMoveWorth() { return m_moveWorth; }
-    Grid *getCurrentGrid() { return m_currentGrid; }
+    const Grid *getCurrentGrid() const { return m_currentGrid; }
     BoardState *getParent() { return m_parent; }
     BoardState **getNextStates() { return m_nextStates; }
     BoardState *getNextBestState() { return m_nextBestMove; }
-    int getNumNextStates() { return m_numNextStates; }
+    int getNumNextStates() const { return m_numNextStates; }
     //Return the index of the next best move.
-    int getNextBestStateIndex() { return getIndexOfState(m_nextBestMove->getCurrentGrid()); }
-    BoardState *getState(int index) { return m_nextStates[index]; }
+    int getNextBestStateIndex() const { return getIndexOfState(m_nextBestMove->getCurrentGrid()); }
+    BoardState *getState(int index) const { return m_nextStates[index]; }
     //Search nextStates for a matching grid.  Return the index if it exists, -1 otherwise.
     BoardState *getState(const Grid *grid);
     //Search nextStates for a matching grid.  Return the index if it exists, -1 otherwise.
-    int getIndexOfState(const Grid *grid);
+    int getIndexOfState(const Grid *grid) const;
 
     void deleteNextStates();
 
@@ -44,8 +66,15 @@ private:
     BoardState **m_nextStates;
     BoardState *m_nextBestMove;
     int m_numNextStates;
-    int m_currentPlayer;
+    Elements::PlayerType m_currentPlayer;
     double m_moveWorth;
+
+
+
+protected:
+    int m_lastSquare;
+    int m_P1StateWorth;
+    int m_P2StateWorth;
 };
 
 #endif // BOARDSTATE_H

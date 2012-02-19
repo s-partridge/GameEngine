@@ -16,34 +16,37 @@ public:
 
     void purge();
 
-    ~NeuronLayer();
+    ~NeuronLayer() { purge(); }
 
     void setActivation(ActivationFunctor *activation) { m_activation = activation; }
-    void setWeightsForNeuron(int index, const double *weights) { m_neurons[index].setWeights(weights); }
+    void setWeightsForNeuron(int index, const double *weights);
 
     //Create weights for this layer's neurons.  Copy the values to weightResult.
-    void generateLayerWeights(double *weightResult);
+    void generateLayerWeights(double *&weightResult);
 
     //Copy source into dest, starting at a given destination index, given the number of source elements.
-    void arrayCopy(const double *source, double *dest, int destStartIndex, int sourceNumElements);
+    static void copyArray(const double *source, double *&dest, int destStartIndex, int sourceNumElements);
+    static void copyArray(const double *source, double *&dest, int sourceNumElements);
 
     //Set the momentum value for this layer.
     void setMomentum(double momentum) { m_momentum = momentum; }
+    double getMomentum() const { return m_momentum; }
 
     //Set the learning rate for this layer.
     void setLearnRate(double learnRate) { m_learnRate = learnRate; }
+    double getLearnRate() const { return m_learnRate; }
 
     //Calculate outputs from each neuron.
-    void getResult(const double *inputs, double *outputs);
+    void getResult(const double *inputs, double *&outputs);
 
-    int getNumInputs() { return m_neurons[0].getNumInputs(); }
-    int getNumNeurons() { return m_numNeurons; }
+    int getNumInputs() const { return m_neurons[0].getNumInputs(); }
+    int getNumNeurons() const { return m_numNeurons; }
 
 
     //Calculate blames for this layer and return the results.
-    void calcBlames(const double *nextLayerErrors, int numErrors);
+    double *calcBlames(const double *nextLayerErrors, double **nextLayerWeightMatrix, int numErrors);
 
-    void calcBlameDeltas();
+    double *calcBlameDeltas();
 
     //Reset accBlames to 0.
     void resetAccBlames();
@@ -60,21 +63,27 @@ public:
     //Add momentum to m_accBlames.
     void addMomentum();
 
-    //Add accBlames to momentumChanges.  The new value will be used as momentumChanges for
-    //the next iteration.
-    void setMomentumChanges();
+    //Add the learning rate to the blames.
+    void addLearnRateToBlames();
 
     //Applies m_accBlames to the weights in m_neurons.
     void changeWeights();
 
-    void getWeightMatrix(double **weightMatrix);
+    //Add accBlames to momentumChanges.  The new value will be used as momentumChanges for
+    //the next iteration.
+    void setMomentumChanges();
+
+    //Copies all weights from the neuron layer into a matrix.
+    void getWeightMatrix(double **&weightMatrix) const;
+    //Deletes the weight matrix passed in.  Assumes the matrix came from this layer.
+    void destroyWeightMatrix(double **&weightMatrix) const;
 
 protected:
     double *m_blames;
 
     //The values stored here will be applied to neuron weights when
     //changeWeights() is called.
-    double *m_accBlames;
+    double **m_accBlames;
     //Stores values used with momentum.  These are multiplied with
     //weightChanges to produce smaller (or larger) changes as need be.
     double **m_momentumChanges;
@@ -100,7 +109,7 @@ class OutputLayer : public NeuronLayer
 {
 public:
     OutputLayer() {}
-    void calcOutputBlames(const double expectedOutput);
+    double *calcOutputBlames(const double *expectedOutput);
 };
 
 #endif // NEURONLAYER_H

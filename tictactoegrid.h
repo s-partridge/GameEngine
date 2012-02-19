@@ -7,7 +7,7 @@
 class TicTacToeGrid : public Grid
 {
 public:
-    TicTacToeGrid() {}
+    TicTacToeGrid() { init(); }
 
     void init();
 };

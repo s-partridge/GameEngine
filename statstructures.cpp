@@ -1,26 +1,33 @@
 #include "statstructures.h"
 
+/////////////
+//GameStats//
+/////////////
+
 void GameStats::init()
 {
     player1Win = false;
     player2Win = false;
 }
 
-GameStats &GameStats::operator +(GameStats &rhs)
-{
-    player1Win += rhs.player1Win;
-    player2Win += rhs.player2Win;
-
-    return *this;
-}
-
-GameStats &GameStats::operator =(GameStats &rhs)
+GameStats GameStats::operator =(const GameStats &rhs)
 {
     player1Win = rhs.player1Win;
     player2Win = rhs.player2Win;
 
     return *this;
 }
+
+GameStats GameStats::operator+=(const GameStats &rhs)
+{
+    player1Win += rhs.player1Win;
+    player2Win += rhs.player2Win;
+    return *this;
+}
+
+///////////////////
+//AITrainingStats//
+///////////////////
 
 void AITrainingStats::init()
 {
@@ -33,21 +40,7 @@ void AITrainingStats::init()
     percentageWorst = 0.0;
 }
 
-AITrainingStats &AITrainingStats::operator +(AITrainingStats &rhs)
-{
-    bestMoves += rhs.bestMoves;
-    errors += rhs.errors;
-    wins += rhs.wins;
-    losses += rhs.losses;
-    totalMoves += rhs.totalMoves;
-
-    percentageBest = bestMoves / (double)totalMoves * 100;
-    percentageWorst = errors / (double)totalMoves * 100;
-
-    return *this;
-}
-
-AITrainingStats &AITrainingStats::operator =(AITrainingStats &rhs)
+AITrainingStats AITrainingStats::operator =(const AITrainingStats &rhs)
 {
     bestMoves = rhs.bestMoves;
     errors = rhs.errors;
@@ -57,6 +50,20 @@ AITrainingStats &AITrainingStats::operator =(AITrainingStats &rhs)
 
     percentageBest = rhs.percentageBest;
     percentageWorst = rhs.percentageWorst;
+
+    return *this;
+}
+
+AITrainingStats AITrainingStats::operator+=(const AITrainingStats &rhs)
+{
+    bestMoves += rhs.bestMoves;
+    errors += rhs.errors;
+    wins += rhs.wins;
+    losses += rhs.losses;
+    totalMoves += rhs.totalMoves;
+
+    percentageBest = bestMoves / (double)totalMoves * 100;
+    percentageWorst = errors / (double)totalMoves * 100;
 
     return *this;
 }

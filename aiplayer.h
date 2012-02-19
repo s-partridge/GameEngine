@@ -9,7 +9,7 @@
 class AIPlayer : public Player
 {
 public:
-    virtual AIPlayer() : Player() {}
+    AIPlayer() : Player() {}
     virtual ~AIPlayer() {}
 };
 

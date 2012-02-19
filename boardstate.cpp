@@ -1,24 +1,33 @@
 #include "boardstate.h"
 
 //Generates one board state.
-BoardState::BoardState(const Grid *currentGrid, BoardState *parent, int currentPlayer, RulesEngine *rulesEngine)
+BoardState::BoardState(Grid *currentGrid, BoardState *parent, Elements::PlayerType currentPlayer, const RulesEngine *rulesEngine)
     : m_parent(parent), m_currentPlayer(currentPlayer)
 {
+#ifdef DEBUG_BOARDSTATE
+    printLine4("The board state at address ", this, " contains grid with address: ", currentGrid);
+#endif
     m_currentGrid = currentGrid;
     m_nextBestMove = NULL;
     m_nextStates = NULL;
-    int m_numNextStates = 0;
+    m_numNextStates = 0;
+    m_P1StateWorth = 0;
+    m_P2StateWorth = 0;
 
     m_moveWorth = rulesEngine->worthOfState(currentGrid, m_currentPlayer, rulesEngine->testBoard(currentGrid));
 }
 
-
 //Generates a board state and child nodes for numLayersToBuild iterations.
-BoardState::BoardState(const Grid *currentGrid, BoardState *parent, int currentPlayer, const RulesEngine *rulesEngine, int numLayersToBuild)
+BoardState::BoardState(Grid *currentGrid, BoardState *parent, Elements::PlayerType currentPlayer, const RulesEngine *rulesEngine, int numLayersToBuild)
     : m_parent(parent), m_currentPlayer(currentPlayer)
 {
+#ifdef DEBUG_BOARDSTATE
+    printLine4("The board state at address ", this, " contains grid with address: ", currentGrid);
+#endif
     m_currentGrid = currentGrid;
     m_nextStates = NULL;
+    m_P1StateWorth = 0;
+    m_P2StateWorth = 0;
 
     genNextStates(numLayersToBuild - 1, rulesEngine);
 
@@ -27,13 +36,22 @@ BoardState::BoardState(const Grid *currentGrid, BoardState *parent, int currentP
 
 void BoardState::purge()
 {
+#ifdef DEBUG_BOARDSTATE
+    printLine2("Deleting child states for board state at address ", this);
+#endif
+    deleteNextStates();
+#ifdef DEBUG_BOARDSTATE
+    printLine2("Finished deleting child states for board state at address ", this);
+#endif
     if(m_currentGrid != NULL)
     {
+#ifdef DEBUG_BOARDSTATE
+        printLine2("Deleting grid for board state at address ", this);
+        printLine2("Grid has address ", m_currentGrid);
+#endif
         delete m_currentGrid;
         m_currentGrid = NULL;
     }
-
-    deleteNextStates();
 
     //nextBestMove is a reference to a state already stored in nextStates.
     m_nextBestMove = NULL;
@@ -41,13 +59,22 @@ void BoardState::purge()
 
 void BoardState::genNextStates(int numLayers, const RulesEngine *rulesEngine)
 {
+#ifdef DEBUG_BOARDSTATE
+    printLine3("genNextStates for ", numLayers, " layers.");
+#endif
+
+    //Make sure this is not an end state.
+    if(rulesEngine->testBoard(m_currentGrid) != Elements::NORMAL)
+        return;
+
     //Create a temporary array to contain the grids.
     Grid **nextGrids = NULL;
+    //genNextMoves will set the value of m_numNextStates and nextGrids.
     rulesEngine->genNextMoves(m_currentGrid, nextGrids, m_currentPlayer, m_numNextStates);
 
     deleteNextStates();
 
-    m_nextStates = new *BoardState[m_numNextStates];
+    m_nextStates = new BoardState*[m_numNextStates];
 
     Elements::PlayerType nextPlayer;
 
@@ -57,29 +84,22 @@ void BoardState::genNextStates(int numLayers, const RulesEngine *rulesEngine)
     }
     else
         nextPlayer = Elements::PLAYER_1;
+
     for(int x = 0; x < m_numNextStates; ++x)
     {
         if(numLayers > 0)
-            m_nextStates[x] = new BoardState(nextGrids[x], this, nextPlayer, rulesEngine, numlayers);
+            m_nextStates[x] = new BoardState(nextGrids[x], this, nextPlayer, rulesEngine, numLayers);
 
         else
             m_nextStates[x] = new BoardState(nextGrids[x], this, nextPlayer, rulesEngine);
     }
-
-    //NextStates is passed by value to the new boards, so the local reference must be deleted.
-    for(int x = o; x < numNextStates; ++x)
-    {
-        delete nextGrids[x];
-    }
-
-    delete [] nextGrids;
 
     setNextBestMove();
 }
 
 void BoardState::setNextBestMove()
 {
-    double highestWorthIndex = 0;
+    int highestWorthIndex = 0;
 
     for(int x = 1; x < m_numNextStates; ++x)
     {
@@ -94,13 +114,156 @@ void BoardState::setNextBestMove()
     m_nextBestMove = m_nextStates[highestWorthIndex];
 }
 
+int BoardState::getStateWorth(const RulesEngine *rulesEngine, fstream &toWrite)
+{
+    //Make sure this is not an end state.
+    if(m_nextStates != NULL)
+    {
+        int highestStateIndex = 0;
+
+        for(int x = 0; x < m_numNextStates; ++x)
+        {
+#ifdef DEBUG_STATEWORTH
+            printLine4("Finding worth of state ", x, " of ", m_numNextStates);
+#endif
+            //Add the move worth of each successive state to that of the current state.
+            m_nextStates[x]->getStateWorth(rulesEngine, toWrite);
+
+            m_P1StateWorth += m_nextStates[x]->getP1StateWorth();
+            m_P2StateWorth += m_nextStates[x]->getP2StateWorth();
+            //Find the most valuable state.
+            if(m_currentPlayer == Elements::PLAYER_1)
+            {
+                if(m_nextStates[x]->getP1StateWorth() > m_nextStates[highestStateIndex]->getP1StateWorth())
+                    highestStateIndex = x;
+            }
+            else if(m_currentPlayer == Elements::PLAYER_2)
+            {
+                if(m_nextStates[x]->getP2StateWorth() > m_nextStates[highestStateIndex]->getP2StateWorth())
+                    highestStateIndex = x;
+            }
+        }
+
+#ifdef DEBUG_STATEWORTH
+        printLine("Writing to file");
+#endif
+        //Only need to write non-terminal states to the file.
+        //The program should never try to read a next state from an end state.
+        toWrite << *m_currentGrid << " , ";
+        toWrite << m_currentGrid->getFirstDifference(m_nextStates[highestStateIndex]->getCurrentGrid()) << "\n";
+        //        << " " << m_P1StateWorth << " " << m_P2StateWorth << "\n";
+    }
+    else
+    {
+        if(rulesEngine->testBoard(m_currentGrid) == Elements::P1WIN)
+        {
+            ++m_P1StateWorth;
+        }
+        else if(rulesEngine->testBoard(m_currentGrid) == Elements::P2WIN)
+        {
+            ++m_P2StateWorth;
+        }
+        else if(rulesEngine->testBoard(m_currentGrid) == Elements::DRAW)
+        {
+            ++m_P1StateWorth;
+            ++m_P2StateWorth;
+        }
+
+    }
+
+    if(m_currentPlayer == Elements::PLAYER_1)
+    {
+        return m_P1StateWorth;
+    }
+    else
+    {
+        return m_P2StateWorth;
+    }
+}
+
+int BoardState::getStateWorthRecurse(const RulesEngine *rulesEngine, fstream &toWrite)
+{
+    //Make sure this is not an end state.
+    if(rulesEngine->testBoard(m_currentGrid) == Elements::NORMAL)
+    {
+        //Create the next layer of states.
+        genNextStates(1, rulesEngine);
+
+        //Will contain the index of the next best state.
+        //Starts at zero and increments when a higher value is found.
+        int highestStateIndex = 0;
+
+        for(int x = 0; x < m_numNextStates; ++x)
+        {
+#ifdef DEBUG_STATEWORTH
+            printLine4("Finding worth of state ", x, " of ", m_numNextStates);
+#endif
+            //Add the move worth of each successive state to that of the current state.
+            m_nextStates[x]->getStateWorthRecurse(rulesEngine, toWrite);
+
+            m_P1StateWorth += m_nextStates[x]->getP1StateWorth();
+            m_P2StateWorth += m_nextStates[x]->getP2StateWorth();
+            //Find the most valuable state.
+            if(m_currentPlayer == Elements::PLAYER_1)
+            {
+                if(m_nextStates[x]->getP1StateWorth() > m_nextStates[highestStateIndex]->getP1StateWorth())
+                    highestStateIndex = x;
+            }
+            else if(m_currentPlayer == Elements::PLAYER_2)
+            {
+                if(m_nextStates[x]->getP2StateWorth() > m_nextStates[highestStateIndex]->getP2StateWorth())
+                    highestStateIndex = x;
+            }
+        }
+
+#ifdef DEBUG_STATEWORTH
+        printLine("Writing to file");
+#endif
+        //Only need to write non-terminal states to the file.
+        //The program should never try to read a next state from an end state.
+        toWrite << *m_currentGrid << " , ";
+        toWrite << m_currentGrid->getFirstDifference(m_nextStates[highestStateIndex]->getCurrentGrid()); //<< "\n";
+        toWrite << " [" << m_P1StateWorth << ", " << m_P2StateWorth << "]\n";
+
+        //Remove the next states to preserve memory.
+        deleteNextStates();
+    }
+    else
+    {
+        if(rulesEngine->testBoard(m_currentGrid) == Elements::P1WIN)
+        {
+            ++m_P1StateWorth;
+        }
+        else if(rulesEngine->testBoard(m_currentGrid) == Elements::P2WIN)
+        {
+            ++m_P2StateWorth;
+        }
+        else if(rulesEngine->testBoard(m_currentGrid) == Elements::DRAW)
+        {
+   //         ++m_P1StateWorth;
+   //         ++m_P2StateWorth;
+        }
+
+    }
+
+    if(m_currentPlayer == Elements::PLAYER_1)
+    {
+        return m_P1StateWorth;
+    }
+    else
+    {
+        return m_P2StateWorth;
+    }
+}
+
 BoardState* BoardState::getState(const Grid *grid)
 {
     for(int x = 0; x < m_numNextStates; ++x)
     {
         //Compare each state's grid with the grid parameter.
         //Return the state containing the matching grid.
-        if(m_nextStates[x]->*grid == *grid)
+        //Dereference both grids to compare them.
+        if((*m_nextStates[x]->getCurrentGrid()) == *grid)
         {
             return m_nextStates[x];
         }
@@ -110,13 +273,13 @@ BoardState* BoardState::getState(const Grid *grid)
     return NULL;
 }
 
-int BoardState::getIndexOfState(const Grid *grid)
+int BoardState::getIndexOfState(const Grid *grid) const
 {
     for(int x = 0; x < m_numNextStates; ++x)
     {
         //Compare each state's grid with the grid parameter.
         //Return the index of the matching grid.
-        if(m_nextStates[x]->*grid == *grid)
+        if(*(m_nextStates[x]->getCurrentGrid()) == *grid)
         {
             return x;
         }
@@ -131,10 +294,11 @@ void BoardState::deleteNextStates()
     {
         for(int x = 0; x < m_numNextStates; ++x)
         {
-            delete m_nextStates[x];
+            if(m_nextStates[x] != NULL)
+                delete m_nextStates[x];
         }
 
         delete [] m_nextStates;
-        m_nextStates == NULL;
+        m_nextStates = NULL;
     }
 }

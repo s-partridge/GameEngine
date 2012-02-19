@@ -2,8 +2,11 @@
 #define GAMEGRIDVIEW_H
 
 #include <QWidget>
+#include <QLayout>
+
 #include "gridsquare.h"
 #include "grid.h"
+#include "macros.h"
 
 class GameGridView : public QWidget
 {
@@ -20,11 +23,20 @@ signals:
     void onSquareClicked(int x, int y);
 
 public slots:
-    void squareClicked(int x, int y) { emit onSquareClicked(x, y); }
-    void updateGrid(Grid *newGrid);
+    //
+    void updateGrid(const Grid *newGrid);
+    void emptyGrid();
+
+protected:
+    virtual void updateText(const Grid *newGrid);
+
+private slots:
+    //Used when a button in m_squares has been pressed.
+    void squareClicked(int x, int y);
 
 private:
     GridSquare ***m_squares;
+    QGridLayout *m_centralLayout;
     int m_height, m_width;
 };
 

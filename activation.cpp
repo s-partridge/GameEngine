@@ -1,23 +1,35 @@
 #include "activation.h"
 
-double Sigmoid::Activation(double input)
+void Sigmoid::setHorizontalStretchFactor(double stretch)
+{
+    //Don't care about this yet.
+}
+
+void Sigmoid::setVerticalStretchFactor(double stretch)
+{
+    vStretchFactor = stretch;
+    vFactorSqrt = sqrt(stretch);
+}
+
+double Sigmoid::activation(double input) const
 {
     //Simplifying the function by separating it into parts.
     double eToNegX = pow(e, -(input));
 
-    m_output = 1 / (1 + eToNegX);
+    //By default, stretchFactor will be 1.
+    double m_output = vStretchFactor / (1 + eToNegX);
 
     //Spit out the result.
     return m_output;
 }
 
-double Sigmoid::simplifiedDerivative(double output)
+double Sigmoid::simplifiedDerivative(double output) const
 {
     //The derivative used in "Intro to Neural Networks"
-    return (output * (1 - output));
+    return ((output / vFactorSqrt) * (vFactorSqrt - output / vFactorSqrt));
 }
 
-double Sigmoid::trueDerivative(double input)
+double Sigmoid::trueDerivative(double input) const
 {
     double derived;
     double eToTheX = (pow(e, -input));
@@ -28,7 +40,7 @@ double Sigmoid::trueDerivative(double input)
     //print(cout, "\t\t1 + e^(x) = ", onePlusEToTheX, "\n");
     //print(cout, "\t\t(1 + e^(x))^2 = ", onePlusEToTheXSquared, "\n");
 
-    derived = eToTheX / onePlusEToTheXSquared;
+    derived = (vStretchFactor * eToTheX) / onePlusEToTheXSquared;
 
     return derived;
 }

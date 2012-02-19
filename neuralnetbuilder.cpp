@@ -1,7 +1,8 @@
 #include "neuralnetbuilder.h"
 
-NeuralNetPlayer *TTTNNBuilder::buildNeuralNet(Trainer *trainer, RulesEngine *rulesEngine, string filename)
+NeuralNetPlayer *TTTNNBuilder::buildNeuralNet(Elements::PlayerType player, RulesEngine *rulesEngine, string filename)
 {
+    //Initialize all the data needed for a new tic-tac-toe playing neural network.
     int numInputs = NUM_INPUTS;
     int numHiddenLayers = NUM_LAYERS;
     int *numHiddenNeurons = new int[numHiddenLayers];
@@ -9,23 +10,37 @@ NeuralNetPlayer *TTTNNBuilder::buildNeuralNet(Trainer *trainer, RulesEngine *rul
     double *momentums = new double[numHiddenLayers + 1];
     double *learningRates = new double[numHiddenLayers + 1];
 
-    numHiddenNeurons[0] = 27;
-    numHiddenNeurons[1] = 27;
+    //Two hiden layers, both with 27 neurons.
+    numHiddenNeurons[0] = 3;
+    numHiddenNeurons[1] = 3;
 
+    //Give the same momentum and learning rate to all layers.
     for(int x = 0; x <= numHiddenLayers; ++x)
     {
         momentums[x] = MOMENTUM;
-        learningRates[x] = LEARNING_RATE;
+        learningRates[x] = LEARN_RATE;
     }
 
     NeuralNetPlayer *newNetwork;
 
-    newNetwork = new NeuralNetPlayer();
+    newNetwork = new NeuralNetPlayer(player);
     newNetwork->generateNeuralNetwork(filename, numInputs, numOutputNeurons, numHiddenLayers,
                                       numHiddenNeurons, momentums, learningRates);
 
-    newNetwork->setTrainer(trainer);
     newNetwork->setRulesEngine(rulesEngine);
+
+    //Create a seprate instance for each layer.
+    ActivationFunctor *activation = new Sigmoid();
+    newNetwork->setActivationFunction(activation, 0);
+    activation = new Sigmoid();
+    newNetwork->setActivationFunction(activation, 1);
+
+    //Output layer.
+    activation = new Sigmoid();
+    //Stretch the output of the function.  Allows the network to output between 0 and 8;
+    //one whole number for each board square.
+    ((Sigmoid *)activation)->setVerticalStretchFactor(8);
+    newNetwork->setActivationFunction(activation, 2);
 
     //Manage local memory.
     delete [] learningRates;
@@ -35,12 +50,11 @@ NeuralNetPlayer *TTTNNBuilder::buildNeuralNet(Trainer *trainer, RulesEngine *rul
     return newNetwork;
 }
 
-NeuralNetworkPlayer *TTTNNBuilder::loadNeuralNet(Trainer *trainer, RulesEngine *rulesEngine, string filename)
+NeuralNetPlayer *TTTNNBuilder::loadNeuralNet(Elements::PlayerType player, RulesEngine *rulesEngine, string filename)
 {
-    NeuralNetPlayer *newNetwork = new NeuralNetPlayer();
+    NeuralNetPlayer *newNetwork = new NeuralNetPlayer(player);
 
     newNetwork->setNeuralNetworkFromFile(filename);
-    newNetwork->setTrainer(trainer);
     newNetwork->setRulesEngine(rulesEngine);
 
     return newNetwork;

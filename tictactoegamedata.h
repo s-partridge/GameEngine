@@ -9,6 +9,7 @@ class TicTacToeGameData : public GameData
 public:
     TicTacToeGameData() {}
 
+    void resetBoard(RulesEngine *rulesEngine);
     void init(RulesEngine *rulesEngine);
 };
 

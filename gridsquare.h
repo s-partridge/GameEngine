@@ -9,10 +9,10 @@ class GridSquare : public QPushButton
 {
     Q_OBJECT
 public:
-    explicit GridSquare(int xCoord, int yCoord, QObject *parent = 0);
+    explicit GridSquare(int xCoord, int yCoord, QWidget *parent = 0);
 
-    GenericPieceType getPieceType() { return m_value; }
-    void changePieceType(GenericPieceType value) { m_value = value; }
+    Elements::GenericPieceType getPieceType() { return m_value; }
+    void changePieceType(Elements::GenericPieceType value) { m_value = value; }
     void changeText(QString string) { setText(string); }
 
 signals:
@@ -25,9 +25,7 @@ private slots:
     void onButtonClick() { emit buttonClicked(m_xCoord, m_yCoord); }
 
 private:
-    using namespace Elements;
-
-    GenericPieceType m_value;
+    Elements::GenericPieceType m_value;
 
     int m_xCoord, m_yCoord;
 };

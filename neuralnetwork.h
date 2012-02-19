@@ -18,9 +18,17 @@ public:
                   const int numHiddenLayers, const int *numHiddenNeurons,
                   const double *momentum, const double *learnRate);
 
+    void purge();
+
+    //Manually set the neuron weights.
+    void setNeuronLayerWeights(int layerNumber, double **weights);
+
+    ~NeuralNetwork() { purge(); }
+
     //Returns the number of neuron layers, including both hidden and output.
     int getNumLayers() { return m_numHiddenLayers + 1; }
 
+    void setLayerWeights(int layer, double **weights);
     void setLayerMomentum(int layer, double momentum);
     void setLayerLearnRate(int layer, double learnRate);
 
@@ -29,11 +37,19 @@ public:
     void saveNNP();
     void saveNNP(string filename);
 
-    void getResults(const double *inputs, double *outputs);
+    void getResults(const double *inputs, double *&outputs);
     void backpropagate(double *actual, double *expected);
 
 private:
+    //Collects all the values stored in the neuron layers and copies them to the given double arrays.
+    //The parameters are expected to be NULL.  These are used with saveNNP() to extract all needed data
+    //from the neural network's layers.
+    void getLayerValues(double ***&weights, double *&momentums, double *&learnRates, int *&numNeurons, int *&numInputs) const;
+    void destroyLayerValues(double ***&weights, double *&momentums, double *&learnRates, int *&numNeurons, int *&numInputs) const;
+
     NeuronLayer *m_hiddenLayers;
+    ActivationFunctor *m_activation;
+
     int m_numHiddenLayers;
     int m_numInputs;
 

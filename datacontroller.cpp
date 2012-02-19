@@ -1,6 +1,6 @@
 #include "datacontroller.h"
 
-bool DataController::isGameOver(Grid *move)
+bool DataController::isGameOver(const Grid *move)
 {
     //Return true if the game is not in a normal state.
     if(m_rulesEngine->testBoard(move) != Elements::NORMAL)
@@ -34,4 +34,10 @@ void DataController::resetStatistics()
     resetGameStats();
     resetTotalStats();
     resetTrainingStats();
+}
+
+void DataController::setNextMove(const Grid *next)
+{
+    m_moveTree->setNextMove(next);
+    m_moveTree->genNextMoves(1, m_rulesEngine);
 }

@@ -1,12 +1,14 @@
 #ifndef VIEWBUILDER_H
 #define VIEWBUILDER_H
 
+#include "mainwindow.h"
+
 class ViewBuilder
 {
 public:
-    ViewBuilder();
+    ViewBuilder() {}
 
-    virtual QWidget generateCentralWidget() = 0;
+    virtual MainWindow *generateMainView() = 0;
 };
 
 #endif // VIEWBUILDER_H

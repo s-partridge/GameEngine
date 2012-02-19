@@ -10,7 +10,7 @@ class Player
 public:
     Player() {}
     virtual ~Player() {}
-    virtual void makeMove(const BoardState *currentState, Grid *nextMove) = 0;
+    virtual void makeMove(const BoardState *currentState, Grid *&nextMove) = 0;
 
 protected:
     Elements::PlayerType m_player;

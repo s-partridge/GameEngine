@@ -31,13 +31,21 @@ SOURCES += main.cpp\
     activation.cpp \
     gamegridview.cpp \
     controlpanelview.cpp \
-    tictactoemainwindow.cpp \
     gridsquare.cpp \
     statstructures.cpp \
     tictactoegamedata.cpp \
     neuralnetbuilder.cpp \
     mainwidget.cpp \
-    viewbuilder.cpp
+    viewbuilder.cpp \
+    tictactoemainwidget.cpp \
+    tictactoetrainer.cpp \
+    tictactoeviewbuilder.cpp \
+    gameenginebuilder.cpp \
+    tictactoegameenginebuilder.cpp \
+    movetablebuilder.cpp \
+    connectfourrulesengine.cpp \
+    connectfourgrid.cpp \
+    unittests.cpp
 
 HEADERS  += mainwindow.h \
     gamecontroller.h \
@@ -64,12 +72,42 @@ HEADERS  += mainwindow.h \
     macros.h \
     gamegridview.h \
     controlpanelview.h \
-    tictactoemainwindow.h \
     gridsquare.h \
     tictactoegamedata.h \
     neuralnetbuilder.h \
     mainwidget.h \
-    viewbuilder.h
+    viewbuilder.h \
+    tictactoemainwidget.h \
+    tictactoetrainer.h \
+    tictactoeviewbuilder.h \
+    gameenginebuilder.h \
+    tictactoegameenginebuilder.h \
+    movetablebuilder.h \
+    connectfourrulesengine.h \
+    connectfourgrid.h \
+    unitTests.h
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

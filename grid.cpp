@@ -17,9 +17,13 @@ void Grid::purge()
     }
 }
 
-int Grid::numPiecesOfType(Elements::GenericPieceType pieceType)
+int Grid::numPiecesOfType(Elements::GenericPieceType pieceType) const
 {
     int count = 0;
+
+#ifdef DEBUG_GRID
+    printLine3("NumPiecesOfType(", pieceType,")");
+#endif
 
     for(int x = 0; x < width; ++x)
     {
@@ -31,10 +35,33 @@ int Grid::numPiecesOfType(Elements::GenericPieceType pieceType)
         }
     }
 
+#ifdef DEBUG_GRID
+    printLine3("Found ", count, " pieces.");
+#endif
+
     return count;
 }
 
-int Grid::numDifferences(const Grid *rhs)
+int Grid::getFirstDifference(const Grid *rhs) const
+{
+    int diffIndex = 0;
+
+    //Return the index of the first different square as an integer.
+    for(int x = 0;  x < width; ++x)
+    {
+        for(int y = 0; y < height; ++y)
+        {
+            if(squares[x][y] != rhs->squares[x][y])
+                return diffIndex;
+            ++diffIndex;
+        }
+    }
+
+    //If no difference is found.
+    return -1;
+}
+
+int Grid::numDifferences(const Grid *rhs) const
 {
     int count = 0;
 
@@ -53,7 +80,7 @@ int Grid::numDifferences(const Grid *rhs)
     return count;
 }
 
-Grid& Grid::operator =(const Grid &rhs)
+Grid &Grid::operator =(const Grid &rhs)
 {
     for(int x = 0; x < width; ++x)
     {
@@ -63,10 +90,32 @@ Grid& Grid::operator =(const Grid &rhs)
             squares[x][y] = rhs.squares[x][y];
         }
     }
+
+    return *this;
 }
 
-bool Grid::operator ==(const Grid &rhs)
+bool Grid::operator ==(const Grid &rhs) const
 {
+#ifdef DEBUG_GRID
+    print("RHS:");
+    for(int x = 0; x < width; ++x)
+    {
+        for(int y = 0; y < height; ++y)
+        {
+            printLine5(x, ", ", y, " = ", rhs.squares[x][y]);
+        }
+    }
+
+    print("This:");
+    for(int x = 0; x < width; ++x)
+    {
+        for(int y = 0; y < height; ++y)
+        {
+            printLine5(x, ", ", y, " = ", squares[x][y]);
+        }
+    }
+#endif
+
     for(int x = 0; x < width; ++x)
     {
         for(int y = 0; y < height; ++y)
@@ -78,4 +127,64 @@ bool Grid::operator ==(const Grid &rhs)
     }
 
     return true;
+}
+
+std::string Grid::toString() const
+{
+    std::string o;
+    std::stringstream ss;
+
+    for(int x = 0; x < width; ++x)
+    {
+        for(int y = 0; y < height; ++y)
+        {
+            ss << squares[x][y];
+
+            //Add a space between all elements, but add no space after the last element.
+            if(y < height - 1)
+                ss << " ";
+        }
+        if(x < width - 1)
+            ss << " ";
+    }
+
+    o = ss.str();
+    return o;
+}
+
+void Grid::fromString(const std::string input)
+{
+    std::stringstream ss;
+
+    int temp;
+    //Put the input string in the stream.
+    ss << input;
+    for(int x = 0; x < width; ++x)
+    {
+        for(int y = 0; y < height; ++y)
+        {
+            //Pull each element out of the stream and copy it to the grid.
+            ss >> temp;
+            squares[x][y] = (Elements::GenericPieceType)temp;
+        }
+    }
+}
+
+std::ostream & operator<<(std::ostream &o, const Grid &grid)
+{
+    for(int x = 0; x < grid.width; ++x)
+    {
+        for(int y = 0; y < grid.height; ++y)
+        {
+            o << grid.squares[x][y];
+
+            //Add a space between all elements, but add no space after the last element.
+            if(y < grid.height - 1)
+                o << " ";
+        }
+        if(x < grid.width - 1)
+            o << " ";
+    }
+
+    return o;
 }

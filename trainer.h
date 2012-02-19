@@ -12,16 +12,25 @@
 #ifndef TRAINER_H
 #define TRAINER_H
 
-#include "neuralnetwork.h"
+//For rand(), time, and srand()
+#include <stdlib.h>
+#include <ctime>
+
+#include "neuralnetplayer.h"
+#include "statstructures.h"
+#include "rulesengine.h"
 
 class Trainer
 {
-    int m_trainingIterations;
-public:
-    Trainer() : m_trainingIterations(1) {}
+protected:
+    RulesEngine *m_rulesEngine;
+    int m_numTrainingIterations;
 
-    void setNumIterations(int numTrainingIterations) { m_trainingIterations = numTrainingIterations; }
-    virtual void trainNetwork(NeuralNetwork *network) const = 0;
+public:
+    Trainer(int numTrainingIterations, RulesEngine *rulesEngine) : m_rulesEngine(rulesEngine), m_numTrainingIterations(numTrainingIterations) {}
+
+    void setNumIterations(int numTrainingIterations) { m_numTrainingIterations = numTrainingIterations; }
+    virtual AITrainingStats trainNetwork(NeuralNetPlayer *player) const = 0;
 };
 
 #endif // TRAINER_H

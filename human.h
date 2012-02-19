@@ -10,7 +10,7 @@ public:
     Human() : Player() {}
     virtual ~Human() {}
 
-    void makeMove(const BoardState *currentState, Grid *nextMove) { nextMove = NULL; }
+    void makeMove(const BoardState *currentState, Grid *&nextMove) { nextMove = NULL; }
 };
 
 #endif // HUMAN_H

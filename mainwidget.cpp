@@ -1,6 +1,6 @@
 #include "mainwidget.h"
 
-MainWidget::MainWidget(PlayerType &currentPlayer, QWidget *parent) :
+MainWidget::MainWidget(Elements::PlayerType &currentPlayer, QWidget *parent) :
     QWidget(parent), m_currentPlayer(currentPlayer)
 {
     m_gridView = NULL;
