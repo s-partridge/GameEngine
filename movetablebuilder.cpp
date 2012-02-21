@@ -7,7 +7,7 @@ void MoveTableBuilder::createMoveTableFile(BoardState *startingState, string fil
     f.close();
 
     //If the file contains anything, delete it.
-    f.open(filename.c_str(), ios::out | ios::trunc);
+    f.open(filename.c_str(), ios::out | ios::binary | ios::trunc);
 
     //Todo: Look into error codes for fstream.
     //Find a way to wrap up errors and print them out to the console.
@@ -28,7 +28,7 @@ void MoveTableBuilder::createMoveTableFile(BoardState *startingState, string fil
 void MoveTableBuilder::generateHashTable(string filename, map<string, string> &hashMap)
 {
     ifstream i;
-    i.open(filename.c_str(), ios::in);
+    i.open(filename.c_str(), ios::in | ios::binary);
 
     string key = "";
     string value = "";

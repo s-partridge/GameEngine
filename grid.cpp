@@ -61,6 +61,23 @@ int Grid::getFirstDifference(const Grid *rhs) const
     return -1;
 }
 
+void Grid::toCharArray(char *&emptyArray) const
+{
+    emptyArray = new char[width * height];
+    //Current index in the array to copy data into.
+    //Faster than using x%height to find index.
+    int index = 0;
+
+    for(int x = 0; x < width; ++x)
+    {
+        for(int y = 0; y < height; ++y)
+        {
+            emptyArray[index] = squares[x][y];
+            ++index;
+        }
+    }
+}
+
 int Grid::numDifferences(const Grid *rhs) const
 {
     int count = 0;

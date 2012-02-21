@@ -45,7 +45,13 @@ SOURCES += main.cpp\
     movetablebuilder.cpp \
     connectfourrulesengine.cpp \
     connectfourgrid.cpp \
-    unittests.cpp
+    unittests.cpp \
+    connectfourmainwidget.cpp \
+    connectfourgamedata.cpp \
+    c4nnbuilder.cpp \
+    connectfourviewbuilder.cpp \
+    connectfourgameenginebuilder.cpp \
+    connectfourtrainer.cpp
 
 HEADERS  += mainwindow.h \
     gamecontroller.h \
@@ -85,7 +91,27 @@ HEADERS  += mainwindow.h \
     movetablebuilder.h \
     connectfourrulesengine.h \
     connectfourgrid.h \
-    unitTests.h
+    unitTests.h \
+    connectfourmainwidget.h \
+    connectfourgamedata.h \
+    c4nnbuilder.h \
+    c4constants.h \
+    connectfourviewbuilder.h \
+    connectfourgameenginebuilder.h \
+    connectfourtrainer.h
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

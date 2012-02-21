@@ -1,13 +1,13 @@
-//#define SHOW_GUI
-#define QUICK_TEST
+#define SHOW_GUI
+//#define QUICK_TEST
 
 #include <QtGui/QApplication>
 
 #include "tictactoegameenginebuilder.h"
+#include "connectfourgameenginebuilder.h"
 #include "macros.h"
 #include "movetablebuilder.h"
 #include "unitTests.h"
-#include "connectfourrulesengine.h"
 
 void trainXOR();
 
@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 
     print("Generating objects\n");
 
-    TicTacToeGameEngineBuilder gameEngineBuilder;
+    ConnectFourGameEngineBuilder gameEngineBuilder;
     gameEngineBuilder.generateGameEngine(mainWindow, viewController, gameController,
                                          dataController, statisticsData, gameData);
 
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
     Grid *first = engine->createGameSpecificGrid();
 
     //A starting state for a relatively small move tree.
-    first->squares[0][0] = Elements::TYPE1;
+    first->squares[0][0] = Elements::EMPTY;
     first->squares[0][1] = Elements::TYPE2;
     first->squares[0][2] = Elements::TYPE2;
     first->squares[0][3] = Elements::TYPE2;
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
     first->squares[2][2] = Elements::TYPE2;
     first->squares[2][3] = Elements::TYPE2;
 
-    first->squares[3][0] = Elements::EMPTY;
+    first->squares[3][0] = Elements::TYPE2;
     first->squares[3][1] = Elements::TYPE1;
     first->squares[3][2] = Elements::TYPE1;
     first->squares[3][3] = Elements::TYPE1;
@@ -85,10 +85,14 @@ int main(int argc, char *argv[])
     cout << "Current grid: " << *first << endl;
     cout << "Game state:   " << engine->testBoard(first) << endl;
 
-    BoardState *newState = new BoardState(first, NULL, Elements::PLAYER_1, engine, 6);
+   // BoardState *newState = new BoardState(first, NULL, Elements::PLAYER_1, engine);
 
-    MoveTableBuilder builder;
-    builder.createMoveTableFile(newState, "/Users/samuel/Documents/c4.mt", engine);
+  //  MoveTableBuilder builder;
+  //  builder.createMoveTableFile(newState, "/Users/samuel/Documents/c4.mt", engine);
+
+    delete engine;
+    //delete first;
+    delete first;
 
     /*
     Grid *first = new TicTacToeGrid();

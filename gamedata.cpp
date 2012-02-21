@@ -1,5 +1,16 @@
 #include "gamedata.h"
 
+void GameData::purge()
+{
+    //Delete data stored in the move tree.
+    if(m_startingState != NULL)
+        delete m_startingState;
+
+    m_startingState = NULL;
+
+    m_currentState = NULL;
+}
+
 void GameData::setNextMove(const Grid *move)
 {
 #ifdef DEBUG_GAMEDATA

@@ -3,7 +3,7 @@
 void TicTacToeGameData::resetBoard(RulesEngine *rulesEngine)
 {
 #ifdef DEBUG_GAMEDATA
-    print("gameData->resetBoard");
+    printLine("TTTGameData->resetBoard");
 #endif
     //Empty the tree and return to the first state.
     delete m_startingState;

@@ -46,6 +46,7 @@ struct Grid
     Grid &operator=(const Grid &rhs);
     bool operator==(const Grid &rhs) const;
     bool operator!=(const Grid &rhs) const { return ! (*this == rhs); }
+    void toCharArray(char *&emptyArray) const;
 
     //Ostream operator
     friend std::ostream & operator<<(std::ostream &o, const Grid &grid);

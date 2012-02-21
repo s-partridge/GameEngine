@@ -1,5 +1,9 @@
 #include "boardstate.h"
 
+#define PRINT_ITERATIONS
+#ifdef PRINT_ITERATIONS
+int layerNumber = 0;
+#endif
 //Generates one board state.
 BoardState::BoardState(Grid *currentGrid, BoardState *parent, Elements::PlayerType currentPlayer, const RulesEngine *rulesEngine)
     : m_parent(parent), m_currentPlayer(currentPlayer)
@@ -94,6 +98,10 @@ void BoardState::genNextStates(int numLayers, const RulesEngine *rulesEngine)
             m_nextStates[x] = new BoardState(nextGrids[x], this, nextPlayer, rulesEngine);
     }
 
+    //The grids for m_nextStates are passed by reference, but there is still an unhandled
+    //reference to the array itself that must be accounted for.
+    delete nextGrids;
+
     setNextBestMove();
 }
 
@@ -183,6 +191,9 @@ int BoardState::getStateWorth(const RulesEngine *rulesEngine, fstream &toWrite)
 
 int BoardState::getStateWorthRecurse(const RulesEngine *rulesEngine, fstream &toWrite)
 {
+#ifdef PRINT_ITERATIONS
+    ++layerNumber;
+#endif
     //Make sure this is not an end state.
     if(rulesEngine->testBoard(m_currentGrid) == Elements::NORMAL)
     {
@@ -200,7 +211,11 @@ int BoardState::getStateWorthRecurse(const RulesEngine *rulesEngine, fstream &to
 #endif
             //Add the move worth of each successive state to that of the current state.
             m_nextStates[x]->getStateWorthRecurse(rulesEngine, toWrite);
-
+#ifdef PRINT_ITERATIONS
+            --layerNumber;
+            if(layerNumber <= 10)
+                cout << "Finished with high-level layer " << layerNumber << " state " << x << endl;
+#endif
             m_P1StateWorth += m_nextStates[x]->getP1StateWorth();
             m_P2StateWorth += m_nextStates[x]->getP2StateWorth();
             //Find the most valuable state.
@@ -221,10 +236,17 @@ int BoardState::getStateWorthRecurse(const RulesEngine *rulesEngine, fstream &to
 #endif
         //Only need to write non-terminal states to the file.
         //The program should never try to read a next state from an end state.
-        toWrite << *m_currentGrid << " , ";
-        toWrite << m_currentGrid->getFirstDifference(m_nextStates[highestStateIndex]->getCurrentGrid()); //<< "\n";
-        toWrite << " [" << m_P1StateWorth << ", " << m_P2StateWorth << "]\n";
-
+        char *squares;
+        char nextMove = (m_currentGrid->getFirstDifference(m_nextStates[highestStateIndex]->getCurrentGrid()));
+        m_currentGrid->toCharArray(squares);
+        //Write each square to the file.
+        toWrite.write(squares, m_currentGrid->width * m_currentGrid->height);
+        //Write the next move to the file.
+        toWrite.write((char *)&nextMove, 1);
+        //toWrite << *m_currentGrid << " , ";
+        //toWrite << m_currentGrid->getFirstDifference(m_nextStates[highestStateIndex]->getCurrentGrid())<< "\n";
+        //toWrite << " [" << m_P1StateWorth << ", " << m_P2StateWorth << "]\n";
+        delete [] squares;
         //Remove the next states to preserve memory.
         deleteNextStates();
     }
@@ -240,8 +262,8 @@ int BoardState::getStateWorthRecurse(const RulesEngine *rulesEngine, fstream &to
         }
         else if(rulesEngine->testBoard(m_currentGrid) == Elements::DRAW)
         {
-   //         ++m_P1StateWorth;
-   //         ++m_P2StateWorth;
+            ++m_P1StateWorth;
+            ++m_P2StateWorth;
         }
 
     }

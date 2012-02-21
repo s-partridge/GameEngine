@@ -10,6 +10,10 @@ class GameData
 public:
     GameData() : m_startingState(NULL), m_currentState(NULL) {}
 
+    ~GameData() { purge(); }
+
+    void purge();
+
     virtual void init(RulesEngine *rulesEngine) = 0;
     virtual void resetBoard(RulesEngine *rulesEngine) = 0;
     void undoMove(RulesEngine *rulesEngine);

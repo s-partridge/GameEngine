@@ -101,6 +101,9 @@ bool ConnectFourRulesEngine::isValidMove(const Grid *currentState, const Grid *n
 void ConnectFourRulesEngine::genNextMoves(const Grid *current, Grid **&nextMoves, Elements::PlayerType currentPlayer, int &numNextStates) const
 {
     numNextStates = 0;
+
+    int nextStateIndex = 0;
+
     //If the first square in any column is empty, that column can be moved to.
     for(int x = 0; x < 6; ++x)
     {
@@ -108,9 +111,9 @@ void ConnectFourRulesEngine::genNextMoves(const Grid *current, Grid **&nextMoves
             ++numNextStates;
     }
 
-#ifdef DEBUG_C4GENNEXTMOVES
+    #ifdef DEBUG_C4GENNEXTMOVES
     printLine3("There are ", numNextStates, " legal moves from this state.");
-#endif
+    #endif
     //Initialize the array of next possible states.
     nextMoves = new Grid*[numNextStates];
 
@@ -121,26 +124,6 @@ void ConnectFourRulesEngine::genNextMoves(const Grid *current, Grid **&nextMoves
         *nextMoves[x] = *current;
     }
 
-
-    int nextStateIndex = 0;
-
-    //Initialize an array to contain the next move; it will be the same for each next state.
-    double *index = new double[1];
-    *index = 0.0;
-
-    //Check each column to see if it is full.
-    //TODO: make sure this works!  I've never tried this construct with a for loop before.
-/*    for(int x = 0; x < 6; ++x, *index += 1.0)
-    {
-        //If the column is not full, update that grid with the current column number.
-        if(nextMoves[nextStateIndex]->squares[x][0] == Elements::EMPTY)
-        {
-            //Update the grid.
-            updateGrid(nextMoves[nextStateIndex], index, currentPlayer);
-            //Increment the state index so the next state in the array can be modified.
-            ++nextStateIndex;
-        }
-    }*/
     int x = 0;
     while(nextStateIndex < numNextStates)
     {
@@ -148,12 +131,11 @@ void ConnectFourRulesEngine::genNextMoves(const Grid *current, Grid **&nextMoves
         if(nextMoves[nextStateIndex]->squares[x][0] == Elements::EMPTY)
         {
             //Update the grid.
-            updateGrid(nextMoves[nextStateIndex], index, currentPlayer);
+            updateGrid(nextMoves[nextStateIndex], x, currentPlayer);
             //Increment the state index so the next state in the array can be modified.
 
             ++nextStateIndex;
         }
-        *index += 1.0;
         ++x;
     }
 
@@ -194,6 +176,24 @@ void ConnectFourRulesEngine::updateGrid(Grid *grid, const double *outputs, Eleme
         //This column must not already be full.
         if(row != -1)
             grid->squares[move][row] = (Elements::GenericPieceType)player;
+    }
+}
+
+void ConnectFourRulesEngine::updateGrid(Grid *grid, int output, Elements::PlayerType player) const
+{
+
+    if(output >= 0 && output <= 5)
+    {
+        //Find the lowest open space in the grid.
+        int row = getFirstOpenSpace(grid, output);
+#ifdef DEBUG_C4RE
+        for(int y = 0; y < 4; ++y)
+            printLine5(output, ", ", y, " = ", grid->squares[move][y]);
+#endif
+
+        //This column must not already be full.
+        if(row != -1)
+            grid->squares[output][row] = (Elements::GenericPieceType)player;
     }
 }
 

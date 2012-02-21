@@ -44,6 +44,7 @@ public:
 
 private:
     int getFirstOpenSpace(const Grid *grid, int column) const;
+    void updateGrid(Grid *grid, int output, Elements::PlayerType player) const;
 
 public:
     bool isAWin(Elements::GenericPieceType sq1, Elements::GenericPieceType sq2, Elements::GenericPieceType sq3, Elements::GenericPieceType sq4) const;

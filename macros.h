@@ -20,6 +20,8 @@
 //#define DEBUG_GAMECONTROLLER
 //#define DEBUG_C4RE
 //#define DEBUG_C4GENNEXTMOVES
+//#define DEBUG_C4VIEW
+//#define DEBUG_C4GAMEDATA
 
 //Math macros
 //Floor reduces a floating point number to its integer component.
