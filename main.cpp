@@ -27,6 +27,7 @@ int main(int argc, char *argv[])
 
     print("Generating objects\n");
 
+    //TicTacToeGameEngineBuilder gameEngineBuilder;
     ConnectFourGameEngineBuilder gameEngineBuilder;
     gameEngineBuilder.generateGameEngine(mainWindow, viewController, gameController,
                                          dataController, statisticsData, gameData);

@@ -25,7 +25,7 @@ void MoveTableBuilder::createMoveTableFile(BoardState *startingState, string fil
         cout << "Unable to open file.\n";
 }
 
-void MoveTableBuilder::generateHashTable(string filename, map<string, string> &hashMap)
+void MoveTableBuilder::generateHashTable(string filename, map<string, int> &hashMap)
 {
     ifstream i;
     i.open(filename.c_str(), ios::in | ios::binary);
@@ -57,7 +57,7 @@ void MoveTableBuilder::generateHashTable(string filename, map<string, string> &h
         i >> value;
 
         //Store the result in the map.
-        hashMap[key] = value;
+        hashMap[key] = atoi(value.c_str());
     }
     i.close();
 }

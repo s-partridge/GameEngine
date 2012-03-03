@@ -16,7 +16,7 @@ public:
     MoveTableBuilder() {}
 
     static void createMoveTableFile(BoardState *startingState, string filename, RulesEngine *rulesEngine);
-    static void generateHashTable(string filename, map<string, string> &hashMap);
+    static void generateHashTable(string filename, map<string, int> &hashMap);
 };
 
 #endif // MOVETABLEBUILDER_H

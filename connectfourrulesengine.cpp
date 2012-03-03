@@ -23,7 +23,7 @@ Elements::GameState ConnectFourRulesEngine::testBoard(const Grid *boardState) co
             //Move down one row and try again.
             //Repeat.
         //No need to test beyond the third square, as with the diagonals.
-        for(int y = 0; y < 3; ++y)
+        for(int y = 0; y < 4; ++y)
         {
             if(isAWin(boardState->squares[x][y], boardState->squares[x + 1][y], boardState->squares[x + 2][y], boardState->squares[x + 3][y]))
             {
