@@ -46,6 +46,7 @@ public:
     void resetGame();
     void undoMove();
 
+    void gameOver();
     bool isGameOver(const Grid *move) { return m_dataController->isGameOver(move); }
 
     //Trains the AI matching the given player ID.

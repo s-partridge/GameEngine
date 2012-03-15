@@ -3,11 +3,12 @@
 
 //C4 constants
 //Board size constants
-#define C4_WIDTH            6
-#define C4_HEIGHT           4
+#define C4_WIDTH            7
+#define C4_HEIGHT           6
 
 //C4 Network constants
-#define C4_NUM_INPUTS       24
+#define C4_NUM_INPUTS       C4_WIDTH * C4_HEIGHT
+
 #define C4_NUM_OUTPUTS      1
 
 #define C4_NUM_LAYERS       2

@@ -60,25 +60,23 @@ public:
 
     double *getBlames() { return m_blames; }
 
-    //Add momentum to m_accBlames.
-    void addMomentum();
-
-    //Add the learning rate to the blames.
-    void addLearnRateToBlames();
-
     //Applies m_accBlames to the weights in m_neurons.
     void changeWeights();
 
-    //Add accBlames to momentumChanges.  The new value will be used as momentumChanges for
-    //the next iteration.
-    void setMomentumChanges();
-
+    //Creates a matrix containing one slot for each weight in the layer, uninitialized.
+    void getEmptyWeightMatrix(double **&weightMatrix) const;
     //Copies all weights from the neuron layer into a matrix.
     void getWeightMatrix(double **&weightMatrix) const;
     //Deletes the weight matrix passed in.  Assumes the matrix came from this layer.
     void destroyWeightMatrix(double **&weightMatrix) const;
 
 protected:
+    //Add momentum to weightMatrix.
+    void addMomentum(double **&weightMatrix) const;
+
+    //Add the learning rate weightMatrix.
+    void addLearnRate(double **&weightMatrix) const;
+
     double *m_blames;
 
     //The values stored here will be applied to neuron weights when
@@ -110,6 +108,7 @@ class OutputLayer : public NeuronLayer
 public:
     OutputLayer() {}
     double *calcOutputBlames(const double *expectedOutput);
+    double *calcOutputBlames(const double *actual, const double *expectedOutput);
 };
 
 #endif // NEURONLAYER_H

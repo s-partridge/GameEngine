@@ -1,6 +1,6 @@
 #include "neuralnetbuilder.h"
 
-NeuralNetPlayer *TTTNNBuilder::buildNeuralNet(Elements::PlayerType player, RulesEngine *rulesEngine, string filename)
+TDNeuralNetPlayer *TTTNNBuilder::buildNeuralNet(Elements::PlayerType player, RulesEngine *rulesEngine, string filename)
 {
     //Initialize all the data needed for a new tic-tac-toe playing neural network.
     int numInputs = NUM_INPUTS;
@@ -11,8 +11,8 @@ NeuralNetPlayer *TTTNNBuilder::buildNeuralNet(Elements::PlayerType player, Rules
     double *learningRates = new double[numHiddenLayers + 1];
 
     //Two hiden layers, both with 27 neurons.
-    numHiddenNeurons[0] = 27;
-    numHiddenNeurons[1] = 27;
+    numHiddenNeurons[0] = 45;
+    numHiddenNeurons[1] = 45;
 
     //Give the same momentum and learning rate to all layers.
     for(int x = 0; x <= numHiddenLayers; ++x)
@@ -21,9 +21,9 @@ NeuralNetPlayer *TTTNNBuilder::buildNeuralNet(Elements::PlayerType player, Rules
         learningRates[x] = LEARN_RATE;
     }
 
-    NeuralNetPlayer *newNetwork;
+    TDNeuralNetPlayer *newNetwork;
 
-    newNetwork = new NeuralNetPlayer(player);
+    newNetwork = new TDNeuralNetPlayer(player, TD_EXPECTED_ROUNDS);
     newNetwork->generateNeuralNetwork(filename, numInputs, numOutputNeurons, numHiddenLayers,
                                       numHiddenNeurons, momentums, learningRates);
 
@@ -37,9 +37,10 @@ NeuralNetPlayer *TTTNNBuilder::buildNeuralNet(Elements::PlayerType player, Rules
 
     //Output layer.
     activation = new Sigmoid();
-    //Stretch the output of the function.  Allows the network to output between 0 and 8;
-    //one whole number for each board square.
-    ((Sigmoid *)activation)->setVerticalStretchFactor(8);
+
+    //Modify the function to allow outputs between -1 and 1.
+    ((Sigmoid *)activation)->setVerticalStretchFactor(2);
+    ((Sigmoid *)activation)->setVerticalShiftFactor(-1);
     newNetwork->setActivationFunction(activation, 2);
 
     //Manage local memory.
@@ -50,9 +51,9 @@ NeuralNetPlayer *TTTNNBuilder::buildNeuralNet(Elements::PlayerType player, Rules
     return newNetwork;
 }
 
-NeuralNetPlayer *TTTNNBuilder::loadNeuralNet(Elements::PlayerType player, RulesEngine *rulesEngine, string filename)
+TDNeuralNetPlayer *TTTNNBuilder::loadNeuralNet(Elements::PlayerType player, RulesEngine *rulesEngine, string filename)
 {
-    NeuralNetPlayer *newNetwork = new NeuralNetPlayer(player);
+    TDNeuralNetPlayer *newNetwork = new TDNeuralNetPlayer(player, TD_EXPECTED_ROUNDS);
 
     newNetwork->setNeuralNetworkFromFile(filename);
     newNetwork->setRulesEngine(rulesEngine);
@@ -65,9 +66,10 @@ NeuralNetPlayer *TTTNNBuilder::loadNeuralNet(Elements::PlayerType player, RulesE
 
     //Output layer.
     activation = new Sigmoid();
-    //Stretch the output of the function.  Allows the network to output between 0 and 8;
-    //one whole number for each board square.
-    ((Sigmoid *)activation)->setVerticalStretchFactor(8);
+
+    //Modify the function to allow outputs between -1 and 1.
+    ((Sigmoid *)activation)->setVerticalStretchFactor(2);
+    ((Sigmoid *)activation)->setVerticalShiftFactor(-1);
     newNetwork->setActivationFunction(activation, 2);
 
     return newNetwork;

@@ -52,7 +52,7 @@ public:
     int getNumNextStates() const { return m_numNextStates; }
     //Return the index of the next best move.
     int getNextBestStateIndex() const { return getIndexOfState(m_nextBestMove->getCurrentGrid()); }
-    BoardState *getState(int index) const { return m_nextStates[index]; }
+    BoardState *getStateWithIndex(int index) const { return m_nextStates[index]; }
     //Search nextStates for a matching grid.  Return the index if it exists, -1 otherwise.
     BoardState *getState(const Grid *grid);
     //Search nextStates for a matching grid.  Return the index if it exists, -1 otherwise.

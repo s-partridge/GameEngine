@@ -23,11 +23,13 @@ class Sigmoid : public ActivationFunctor
     //rather than only giving results between 0.0 and 1.0.
     double hFactorSqrt, vFactorSqrt;
     double hStretchFactor, vStretchFactor;
+    double vShiftFactor;
 
 public:
-    Sigmoid() :  hFactorSqrt(1), vFactorSqrt(1), hStretchFactor(1), vStretchFactor(1) {}
+    Sigmoid() :  hFactorSqrt(1), vFactorSqrt(1), hStretchFactor(1), vStretchFactor(1), vShiftFactor(0) {}
     void setVerticalStretchFactor(double stretch);
     void setHorizontalStretchFactor(double stretch);
+    void setVerticalShiftFactor(double shift);
 
     double activation(double input) const;
     double simplifiedDerivative(double output) const;

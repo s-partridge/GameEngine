@@ -51,7 +51,9 @@ SOURCES += main.cpp\
     c4nnbuilder.cpp \
     connectfourviewbuilder.cpp \
     connectfourgameenginebuilder.cpp \
-    connectfourtrainer.cpp
+    connectfourtrainer.cpp \
+    tdneuralnetplayer.cpp \
+    managedarray.cpp
 
 HEADERS  += mainwindow.h \
     gamecontroller.h \
@@ -98,7 +100,17 @@ HEADERS  += mainwindow.h \
     c4constants.h \
     connectfourviewbuilder.h \
     connectfourgameenginebuilder.h \
-    connectfourtrainer.h
+    connectfourtrainer.h \
+    tdneuralnetplayer.h \
+    managedarray.h
+
+
+
+
+
+
+
+
 
 
 

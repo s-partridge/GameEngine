@@ -46,10 +46,11 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef QUICK_TEST
+    trainXOR();
     //RulesEngine *re = new TicTacToeRulesEngine();
     //testC4RulesEngine();
 
-    RulesEngine *engine = new ConnectFourRulesEngine();
+  /*  RulesEngine *engine = new ConnectFourRulesEngine();
     Grid *first = engine->createGameSpecificGrid();
 
     //A starting state for a relatively small move tree.
@@ -181,10 +182,10 @@ void trainXOR()
     double *learnRates = new double[2];
 
     numHidden[0] = 3;
-    momentums[0] = MOMENTUM;
-    momentums[1] = MOMENTUM;
-    learnRates[0] = LEARN_RATE;
-    learnRates[1] = LEARN_RATE;
+    momentums[0] = 0.9;
+    momentums[1] = 0.9;
+    learnRates[0] = 0.7;
+    learnRates[1] = 0.7;
 
     double **inputs = new double*[4];
     for(int x = 0; x < 4; ++x)
@@ -218,21 +219,23 @@ void trainXOR()
 
     ActivationFunctor *newFunctor = new Sigmoid();
 
-    setSpecificWeights(net);
+    //setSpecificWeights(net);
 
     net->setLayerActivation(0, newFunctor);
     net->setLayerActivation(1, newFunctor);
 
-    for(int x = 0; x < 1; ++x)
+    for(int x = 0; x < 500; ++x)
     {
         for(int y = 0; y < 4; ++y)
         {
+            //int z = rand() % 4;
             cout << "\tinputs: " << inputs[y][0] << ", " << inputs[y][1];
             net->getResults(inputs[y], outputs);
             cout << "\toutputs: " << outputs[0];// ", " << outputs[1];
             net->backpropagate(outputs, expected[y]);
             cout << "\texpected: " << expected[y][0] << "\n";// << expected[y][1] << "\n";
         }
+        net->applyWeightChanges();
     }
 
     delete net;
@@ -249,6 +252,22 @@ void setSpecificWeights(NeuralNetwork *network)
     }
 
     //Neuron 1
+    weights[0][0] = -0.5;
+    weights[0][1] = -0.5;
+    weights[0][2] = -0.5;
+
+    //neuron 2
+    weights[1][0] = -0.5;
+    weights[1][1] = -0.5;
+    weights[1][2] = -0.5;
+
+    //Neuron 3
+    weights[2][0] = -0.5;
+    weights[2][1] = -0.5;
+    weights[2][2] = -0.5;
+
+    /*
+    //Neuron 1
     weights[0][0] = -0.544684;
     weights[0][1] = -0.507625;
     weights[0][2] = -0.654222;
@@ -262,7 +281,7 @@ void setSpecificWeights(NeuralNetwork *network)
     weights[2][0] = -0.732203;
     weights[2][1] = -0.63855;
     weights[2][2] = -0.612833;
-
+*/
 #ifdef DEBUG_NEURALNETWORK
     printLine("Setting hidden weights");
 #endif
@@ -279,11 +298,18 @@ void setSpecificWeights(NeuralNetwork *network)
 
     weights[0] = new double[4];
 
+
+    weights[0][0] = -0.5;
+    weights[0][1] = 0.5;
+    weights[0][2] = -0.5;
+    weights[0][3] = 0.5;
+
+    /*
     weights[0][0] = -0.892227;
     weights[0][1] = -0.657057;
     weights[0][2] = -0.657068;
     weights[0][3] = -0.846713;
-
+*/
 #ifdef DEBUG_NEURALNETWORK
     printLine("Setting output weights");
 #endif

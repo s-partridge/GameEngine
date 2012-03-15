@@ -20,6 +20,11 @@ public:
                                const int numHiddenLayers, const int *numHiddenNeurons,
                                const double *momentum, const double *learnRate);
 
+    //Some neural networks can be used with the minimax calculation.
+    //SetCalcAsMax allows an interface to assign minimum or maximum
+    //calculations when deciding on a next move.
+    virtual void setCalcAsMax(bool calc) {}
+
     //Save the neural network.
     void saveNeuralNetwork(string filename) { m_neuralNetwork->saveNNP(filename); }
     void saveNeuralNetwork() { m_neuralNetwork->saveNNP(); }
@@ -32,8 +37,8 @@ public:
     void getResults(const BoardState *currentState, double *&results);
     void getResults(const Grid *currentGrid, Elements::PlayerType player, double *&results);
 
-    //Check the next move returned from the neural network.  Corrected will be NULL
-    //if the neural network made a valid move.
+    //Check the next move returned from the neural network.
+    //Corrected will be NULL if the neural network made a valid move.
     void checkResults(const BoardState *currentState, Grid *results, Grid *&corrected);
 
     void trainNetwork(double *actualOutputs, double *expectedOutputs) { m_neuralNetwork->backpropagate(actualOutputs, expectedOutputs); }
@@ -50,10 +55,10 @@ public:
     void setMomentum(double rate, int layerNumber) { m_neuralNetwork->setLayerMomentum(layerNumber, rate); }
     void setMomentum(double rate);
 
-private:
+protected:
+    RulesEngine *m_rulesEngine;
     NeuralNetwork *m_neuralNetwork;
     Elements::PlayerType m_player;
-    RulesEngine *m_rulesEngine;
 };
 
 #endif // NEURALNETPLAYER_H

@@ -45,6 +45,9 @@ void ViewController::saveAI(Elements::PlayerType playerID, string fileName)
 
 void ViewController::nextMove(const Grid *nextMove)
 {
+#ifdef DEBUG_VIEW
+    printLine("nextMove");
+#endif
     //Only try to move if the game is not over.
     if(m_isGameOver)
         return;
@@ -55,7 +58,7 @@ void ViewController::nextMove(const Grid *nextMove)
     if(newMove == NULL)
     {
 #ifdef DEBUG_VIEW
-        print("Invalid move.");
+        printLine("Invalid move.");
 #endif
         emit(invalidMove());
     }
@@ -64,14 +67,18 @@ void ViewController::nextMove(const Grid *nextMove)
     else
     {
 #ifdef DEBUG_VIEW
-        print("Valid move.");
+        printLine("Valid move.");
 #endif
         emit(updateGame(newMove));
 
         //See if the game is over.  If it is, emit the gameOver signal.
         if(isGameOver(newMove))
         {
+#ifdef DEBUG_VIEW
+            printLine("Game ending move");
+#endif
             m_isGameOver = true;
+            m_gameController->gameOver();
             emit gameOver();
         }
     }
@@ -79,6 +86,9 @@ void ViewController::nextMove(const Grid *nextMove)
 
 void ViewController::newGame()
 {
+#ifdef DEBUG_VIEW
+            printLine("newGame");
+#endif
     m_isGameOver = false;
     m_gameController->resetGame();
     emit resetGame();

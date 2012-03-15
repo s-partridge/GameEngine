@@ -84,7 +84,7 @@ void NeuronLayer::generateLayerWeights(double *&weightResults)
         for(int y = 0; y < m_neurons[0].getNumWeights(); ++y)
         {
             //Give a weight between -1 and 1.
-            neuronWeights[y] = rand() / ((double)RAND_MAX * 2) - 1;
+            neuronWeights[y] = (rand() / ((double)RAND_MAX)) * 2 - 1;
         }
 
         //Store the weights in the correct neuron.
@@ -192,8 +192,6 @@ void NeuronLayer::resetAccBlames()
 
 void NeuronLayer::calcAccBlames()
 {
-    resetAccBlames();
-
 #ifdef DEBUG_NEURONLAYER
     printLine5("\tCalc acc blames for ", m_numNeurons, " neurons with ", m_neurons[0].getNumWeights(), " weights");
 #endif
@@ -225,7 +223,7 @@ void NeuronLayer::calcAccBlames()
     }
 }
 
-void NeuronLayer::addMomentum()
+void NeuronLayer::addMomentum(double **&weightMatrix) const
 {
 #ifdef DEBUG_NEURONLAYER_MOMENTUM
     print("\tAdding momentum to accBlames:\n");
@@ -241,7 +239,7 @@ void NeuronLayer::addMomentum()
 #ifdef DEBUG_NEURONLAYER_MOMENTUM
             print2(" ", m_momentumChanges[x][y] * m_momentum);
 #endif
-            m_accBlames[x][y] += m_momentumChanges[x][y] * m_momentum;
+            weightMatrix[x][y] = m_momentumChanges[x][y] * m_momentum;
         }
 #ifdef DEBUG_NEURONLAYER_MOMENTUM
         print("\n");
@@ -249,37 +247,66 @@ void NeuronLayer::addMomentum()
     }
 }
 
-void NeuronLayer::setMomentumChanges()
-{
-    for(int x = 0; x < m_numNeurons; ++x)
-    {
-        //Apply blame values to the momentums.
-        for(int y = 0; y < m_neurons[0].getNumWeights(); ++y)
-        {
-            m_momentumChanges[x][y] = m_accBlames[x][y];
-        }
-    }
-}
-
-void NeuronLayer::addLearnRateToBlames()
+void NeuronLayer::addLearnRate(double **&weightMatrix) const
 {
     for(int x = 0; x < m_numNeurons; ++x)
     {
         //Apply momentum values to the blames.
         for(int y = 0; y < m_neurons[0].getNumWeights(); ++y)
         {
-            m_accBlames[x][y] *= m_learnRate;
+            weightMatrix[x][y] = m_accBlames[x][y] * m_learnRate;
         }
     }
 }
 
 void NeuronLayer::changeWeights()
 {
+    //Maybe this will work.
+    double **m1 = NULL;
+    double **m2 = NULL;
+    getEmptyWeightMatrix(m1);
+    getEmptyWeightMatrix(m2);
+
+    //Fill each weight matrix with the corresponding values.
+    addLearnRate(m1);
+    addMomentum(m2);
+
+#ifdef DEBUG_NN_ACCBLAMES
+    printLine("Blames applied to this layer:");
+#endif
+    //Add the matrices together, storing the results back in m_momentumChanges for use in the next iteration.
+    for(int x = 0; x < m_numNeurons; ++x)
+    {
+        for(int y = 0; y < m_neurons[0].getNumWeights(); ++y)
+        {
+            m_momentumChanges[x][y] = m1[x][y] + m2[x][y];
+#ifdef DEBUG_NN_ACCBLAMES
+            print2(m_momentumChanges[x][y], " ");
+#endif
+        }
+#ifdef DEBUG_NN_ACCBLAMES
+        print("\n");
+#endif
+    }
+
+
     //Pass all weight changes to the correct neurons.
     for(int x = 0; x < m_numNeurons; ++x)
     {
         m_neurons[x].changeWeights(m_accBlames[x]);
     }
+
+    //Set Accumulated blames to zero.
+    resetAccBlames();
+
+    //Manage memory.
+    // For optimization:  Maybe it would be better to keep m1 and m2 around for the life of the network.
+    //This would keep me from having to create and destroy them every time a training iteration ends.
+    //Plus, it would only cost a number of bytes equal to numNeurons * numWeights * 8 + numNeurons * 4 + 4.
+    //So, for a layer with 9 inputs and 27 neurons, the cost is just over 2KB.  Memory is cheap.  Clock cycles
+    //are expensive.
+    destroyWeightMatrix(m1);
+    destroyWeightMatrix(m2);
 }
 
 double *OutputLayer::calcOutputBlames(const double *expectedOutput)
@@ -302,7 +329,41 @@ double *OutputLayer::calcOutputBlames(const double *expectedOutput)
     return m_blames;
 }
 
+double *OutputLayer::calcOutputBlames(const double *actual, const double *expectedOutput)
+{
+#ifdef DEBUG_NEURONLAYER
+    print3("Calculate blames for ", m_numNeurons, " output neurons:");
+#endif
+
+    for(int x = 0; x < getNumNeurons(); ++x)
+    {
+        m_blames[x] = expectedOutput[x] - actual[x];
+#ifdef DEBUG_NEURONLAYER
+        print2(" ", m_blames[x]);
+#endif
+    }
+
+#ifdef DEBUG_NEURONLAYER
+    print("\n");
+#endif
+    return m_blames;
+}
+
+void NeuronLayer::getEmptyWeightMatrix(double **&weightMatrix) const
+{
+    //Create an array to contain individual neurons' arrays.
+    weightMatrix = new double*[m_numNeurons];
+    for(int x = 0; x < m_numNeurons; ++x)
+    {
+        //Create one sub-array for each neuron.  All neurons have the same number of weights.
+        weightMatrix[x] = new double[m_neurons[0].getNumWeights()];
+    }
+}
+
 //Copy all neuron weights into a matrix.
+//Although this could call getEmptyWeightMatrix first, this function is meant to be used in
+//A neural network's backpropagation algorithm.  Therefore, it must be fast.  Calling another
+//function will just slow it down.
 void NeuronLayer::getWeightMatrix(double **&weightMatrix) const
 {
     weightMatrix = new double*[m_numNeurons];

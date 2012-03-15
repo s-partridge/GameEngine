@@ -129,7 +129,7 @@ void NeuralNetPlayer::checkResults(const BoardState *currentState, Grid *results
         //Create a new grid of the correct type for the current game.
         corrected = m_rulesEngine->createGameSpecificGrid();
         //Copy the squares from the state grid to the corrected grid.
-        *corrected = *currentState->getState(rand() % currentState->getNumNextStates())->getCurrentGrid();
+        *corrected = *currentState->getStateWithIndex(rand() % currentState->getNumNextStates())->getCurrentGrid();
         return;
     }
 }

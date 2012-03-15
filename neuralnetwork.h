@@ -40,6 +40,7 @@ public:
     void getResults(const double *inputs, double *&outputs);
     void backpropagate(double *actual, double *expected);
 
+    void applyWeightChanges();
 private:
     //Collects all the values stored in the neuron layers and copies them to the given double arrays.
     //The parameters are expected to be NULL.  These are used with saveNNP() to extract all needed data

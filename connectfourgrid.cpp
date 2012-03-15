@@ -2,8 +2,8 @@
 
 void ConnectFourGrid::init()
 {
-    width = 6;
-    height = 4;
+    width = C4_WIDTH;
+    height = C4_HEIGHT;
 
 #ifdef DEBUG_GRID
     print("Initializing a connect four grid.");

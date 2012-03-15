@@ -6,24 +6,27 @@ Elements::GameState ConnectFourRulesEngine::testBoard(const Grid *boardState) co
     //Test for diagonal and vertical wins if top row is not empty.
 
     //First check the left side of the board.  It will only support left-facing and vertical wins.
-    for(int x = 0; x < 3; ++x)
+    for(int x = 0; x < C4_WIDTH - 3; ++x)
     {
-        if(boardState->squares[x][0] != Elements::EMPTY)
+        for(int y = 0; y < C4_HEIGHT - 3; ++y)
         {
-            //Vertical
-            if(isAWin(boardState->squares[x][0], boardState->squares[x][1], boardState->squares[x][2], boardState->squares[x][3]) ||
-               /* angled */ isAWin(boardState->squares[x][0], boardState->squares[x + 1][1], boardState->squares[x + 2][2], boardState->squares[x + 3][3]))
+            if(boardState->squares[x][y] != Elements::EMPTY)
             {
-                //Return the value of the winning square.
-                return (Elements::GameState)boardState->squares[x][0];
+                //Vertical
+                if(isAWin(boardState->squares[x][y], boardState->squares[x][y + 1], boardState->squares[x][y + 2], boardState->squares[x][y + 3]) ||
+                        /* angled */ isAWin(boardState->squares[x][y], boardState->squares[x + 1][y + 1], boardState->squares[x + 2][y + 2], boardState->squares[x + 3][y + 3]))
+                {
+                    //Return the value of the winning square.
+                    return (Elements::GameState)boardState->squares[x][y];
+                }
             }
         }
         //Test for horizontal wins.
-            //Test each set of four horizontal spaces simultaneously.
-            //Move down one row and try again.
-            //Repeat.
+        //Test each set of four horizontal spaces simultaneously.
+        //Move down one row and try again.
+        //Repeat.
         //No need to test beyond the third square, as with the diagonals.
-        for(int y = 0; y < 4; ++y)
+        for(int y = 0; y < C4_HEIGHT; ++y)
         {
             if(isAWin(boardState->squares[x][y], boardState->squares[x + 1][y], boardState->squares[x + 2][y], boardState->squares[x + 3][y]))
             {
@@ -35,18 +38,19 @@ Elements::GameState ConnectFourRulesEngine::testBoard(const Grid *boardState) co
     //Then check the right side.  It will only support right-facing and vertical wins.
     for(int x = 3; x < 6; ++x)
     {
-
-        if(boardState->squares[x][0] != Elements::EMPTY)
+        for(int y = 0; y < C4_HEIGHT - 3; ++y)
         {
-            //Vertical
-            if(isAWin(boardState->squares[x][0], boardState->squares[x][1], boardState->squares[x][2], boardState->squares[x][3]) ||
-               /* angled */ isAWin(boardState->squares[x][0], boardState->squares[x - 1][1], boardState->squares[x - 2][2], boardState->squares[x - 3][3]))
+            if(boardState->squares[x][y] != Elements::EMPTY)
             {
-                //Return the value of the winning square.
-                return (Elements::GameState)boardState->squares[x][0];
+                //Vertical
+                if(isAWin(boardState->squares[x][y], boardState->squares[x][y + 1], boardState->squares[x][y + 2], boardState->squares[x][y + 3]) ||
+                        /* angled */ isAWin(boardState->squares[x][y], boardState->squares[x - 1][y + 1], boardState->squares[x - 2][y + 2], boardState->squares[x - 3][y + 3]))
+                {
+                    //Return the value of the winning square.
+                    return (Elements::GameState)boardState->squares[x][y];
+                }
             }
         }
-
     }
 
     //if no win was found and there are no empty spaces, the game is over.
@@ -105,15 +109,15 @@ void ConnectFourRulesEngine::genNextMoves(const Grid *current, Grid **&nextMoves
     int nextStateIndex = 0;
 
     //If the first square in any column is empty, that column can be moved to.
-    for(int x = 0; x < 6; ++x)
+    for(int x = 0; x < C4_WIDTH; ++x)
     {
         if(current->squares[x][0] == Elements::EMPTY)
             ++numNextStates;
     }
 
-    #ifdef DEBUG_C4GENNEXTMOVES
+#ifdef DEBUG_C4GENNEXTMOVES
     printLine3("There are ", numNextStates, " legal moves from this state.");
-    #endif
+#endif
     //Initialize the array of next possible states.
     nextMoves = new Grid*[numNextStates];
 
@@ -141,12 +145,12 @@ void ConnectFourRulesEngine::genNextMoves(const Grid *current, Grid **&nextMoves
 
 #ifdef DEBUG_C4GENNEXTMOVES
     //Display the board.
-    for(int y = 0; y < 4; ++y)
+    for(int y = 0; y < C4_HEIGHT; ++y)
     {
         nextStateIndex = 0;
         while(nextStateIndex < numNextStates)
         {
-            for(int x = 0; x < 6; ++x)
+            for(int x = 0; x < C4_WIDTH; ++x)
             {
                 print2(nextMoves[nextStateIndex]->squares[x][y], " ");
             }
@@ -164,12 +168,12 @@ void ConnectFourRulesEngine::updateGrid(Grid *grid, const double *outputs, Eleme
     //Outputs is expected to contain a column value.
     int move = round(*outputs);
 
-    if(move >= 0 && move <= 5)
+    if(move >= 0 && move < C4_WIDTH)
     {
         //Find the lowest open space in the grid.
         int row = getFirstOpenSpace(grid, move);
 #ifdef DEBUG_C4RE
-        for(int y = 0; y < 4; ++y)
+        for(int y = 0; y < C4_HEIGHT; ++y)
             printLine5(move, ", ", y, " = ", grid->squares[move][y]);
 #endif
 
@@ -177,17 +181,21 @@ void ConnectFourRulesEngine::updateGrid(Grid *grid, const double *outputs, Eleme
         if(row != -1)
             grid->squares[move][row] = (Elements::GenericPieceType)player;
     }
+    else
+    {
+        std::cerr << "INVALID MOVE WAS ATTEMPTED" << std::endl;
+    }
 }
 
 void ConnectFourRulesEngine::updateGrid(Grid *grid, int output, Elements::PlayerType player) const
 {
 
-    if(output >= 0 && output <= 5)
+    if(output >= 0 && output < C4_WIDTH)
     {
         //Find the lowest open space in the grid.
         int row = getFirstOpenSpace(grid, output);
 #ifdef DEBUG_C4RE
-        for(int y = 0; y < 4; ++y)
+        for(int y = 0; y < C4_HEIGHT; ++y)
             printLine5(output, ", ", y, " = ", grid->squares[move][y]);
 #endif
 
@@ -195,11 +203,15 @@ void ConnectFourRulesEngine::updateGrid(Grid *grid, int output, Elements::Player
         if(row != -1)
             grid->squares[output][row] = (Elements::GenericPieceType)player;
     }
+    else
+    {
+        std::cerr << "INVALID MOVE WAS ATTEMPTED" << std::endl;
+    }
 }
 
 int ConnectFourRulesEngine::getFirstOpenSpace(const Grid *grid, int column) const
 {
-    for(int y = 3; y >=0; --y)
+    for(int y = C4_HEIGHT - 1; y >=0; --y)
     {
         if(grid->squares[column][y] == Elements::EMPTY)
             return y;
@@ -212,11 +224,11 @@ int ConnectFourRulesEngine::getFirstOpenSpace(const Grid *grid, int column) cons
 bool ConnectFourRulesEngine::gridToDoubleArray(const Grid *grid, double *&array, Elements::PlayerType player, int index, const int numElements) const
 {
     //Iterate over each space, assuming there is enough space in the receiving array.
-    if(numElements - index >= 24)
+    if(numElements - index >= C4_NUM_INPUTS)
     {
-        for(int x = 0; x < 6; ++x)
+        for(int x = 0; x < C4_HEIGHT; ++x)
         {
-            for(int y = 0; y < 3; ++y)
+            for(int y = 0; y < C4_WIDTH; ++y)
             {
                 //Convert the square to a double and copy it over.
                 array[index] = pieceTypeToDouble(player, grid->squares[x][y]);
@@ -236,11 +248,11 @@ bool ConnectFourRulesEngine::gridToDoubleArray(const Grid *grid, double *&array,
 bool ConnectFourRulesEngine::doubleArrayToGrid(Grid *&grid, const double *array, Elements::PlayerType player, int index, const int numElements) const
 {
     //Make sure the array is large enough.
-    if(numElements - index >= 24)
+    if(numElements - index >= C4_NUM_INPUTS)
     {
-        for(int x = 0; x < 6; ++x)
+        for(int x = 0; x < C4_WIDTH; ++x)
         {
-            for(int y = 0; y < 4; ++y)
+            for(int y = 0; y < C4_HEIGHT; ++y)
             {
                 //Convert each value to a piece type.
                 grid->squares[x][y] = doubleToPieceType(player, array[index]);

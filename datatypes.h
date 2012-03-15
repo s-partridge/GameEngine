@@ -21,11 +21,11 @@
 #define DOUBLE_SIZE         8
 
 //Number of iterations to train a neural network in one set.
-#define NUM_TRAINING_ITERATIONS 10000
+#define NUM_TRAINING_ITERATIONS 250000
 namespace NeuralNetValues
 {
-    #define MOMENTUM        0.9
-    #define LEARN_RATE      0.02
+    #define MOMENTUM        0.7
+    #define LEARN_RATE      0.01
     #define NUM_LAYERS      2
 
     #define NUM_INPUTS      9

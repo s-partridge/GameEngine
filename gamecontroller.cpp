@@ -185,6 +185,29 @@ const Grid *GameController::attemptMove(const Grid *move)
     return NULL;
 }
 
+void GameController::gameOver()
+{
+    //The current state will be needed several times.  Why keep calling a function to retrieve it?
+    BoardState *temp = m_dataController->getCurrentState();
+    Elements::GameState endState =m_rulesEngine->testBoard(temp->getCurrentGrid());
+    //This will perform live training of the neural network players.
+    if(m_dataController->getRoundNumber() % 2)
+    {
+        if(p1IsAI)
+            m_NNPlayer1->endStateReached(temp, endState, true);
+        if(p2IsAI)
+            m_NNPlayer2->endStateReached(temp, endState, false);
+
+    }
+    else
+    {
+        if(p1IsAI)
+            m_NNPlayer1->endStateReached(temp, endState, false);
+        if(p2IsAI)
+            m_NNPlayer2->endStateReached(temp, endState, true);
+    }
+}
+
 //Reset the move tree and current game stats.
 void GameController::resetGame()
 {
@@ -192,6 +215,13 @@ void GameController::resetGame()
     {
         m_dataController->resetTree();
         m_dataController->resetGameStats();
+
+        //Humans don't need to be reset.
+        if(p1IsAI)
+            m_NNPlayer1->reset();
+        if(p2IsAI)
+            m_NNPlayer2->reset();
+
         isP1Turn = true;
     }
 }

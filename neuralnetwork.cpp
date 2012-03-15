@@ -517,7 +517,7 @@ void NeuralNetwork::backpropagate(double *actual, double *expected)
     printLine("\nCalculate output blames");
 #endif
     //Store each layer's blames in tempBlames to be passed on to the next successive layer.
-    tempBlames = m_outputLayer.calcOutputBlames(expected);
+    tempBlames = m_outputLayer.calcOutputBlames(actual, expected);
 
 #ifdef DEBUG_NEURALNETWORK
     printLine("Calculate output blame deltas");
@@ -593,10 +593,8 @@ void NeuralNetwork::backpropagate(double *actual, double *expected)
 #ifdef DEBUG_NEURALNETWORK
     printLine("Adding output momentum");
 #endif
-    m_outputLayer.addMomentum();
-    m_outputLayer.addLearnRateToBlames();
-    m_outputLayer.changeWeights();
-    m_outputLayer.setMomentumChanges();
+    //m_outputLayer.addMomentum();
+    //m_outputLayer.addLearnRateToBlames();
 
     for(int x = m_numHiddenLayers - 1; x >= 0; --x)
     {
@@ -608,13 +606,23 @@ void NeuralNetwork::backpropagate(double *actual, double *expected)
 #ifdef DEBUG_NEURALNETWORK
     printLine3("Adding hidden layer ", x, " momentum");
 #endif
-        m_hiddenLayers[x].addMomentum();
+        //m_hiddenLayers[x].addMomentum();
 
 #ifdef DEBUG_NEURALNETWORK
     printLine3("Adding hidden layer ", x, " learning rate");
 #endif
-        m_hiddenLayers[x].addLearnRateToBlames();
+        //m_hiddenLayers[x].addLearnRateToBlames();
+    }
+}
 
+void NeuralNetwork::applyWeightChanges()
+{
+    m_outputLayer.changeWeights();
+    //m_outputLayer.setMomentumChanges();
+
+    //m_outputLayer.resetAccBlames();
+    for(int x = m_numHiddenLayers - 1; x >= 0; --x)
+    {
 #ifdef DEBUG_NEURALNETWORK
     printLine3("Changing hidden layer ", x, " weights");
 #endif
@@ -623,6 +631,8 @@ void NeuralNetwork::backpropagate(double *actual, double *expected)
 #ifdef DEBUG_NEURALNETWORK
     printLine3("Setting hidden layer ", x, " momentum");
 #endif
-        m_hiddenLayers[x].setMomentumChanges();
+        //m_hiddenLayers[x].setMomentumChanges();
+
+        //m_hiddenLayers[x].resetAccBlames();
     }
 }

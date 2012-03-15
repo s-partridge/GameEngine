@@ -11,13 +11,18 @@ void Sigmoid::setVerticalStretchFactor(double stretch)
     vFactorSqrt = sqrt(stretch);
 }
 
+void Sigmoid::setVerticalShiftFactor(double shift)
+{
+    vShiftFactor = shift;
+}
+
 double Sigmoid::activation(double input) const
 {
     //Simplifying the function by separating it into parts.
     double eToNegX = pow(e, -(input));
 
     //By default, stretchFactor will be 1.
-    double m_output = vStretchFactor / (1 + eToNegX);
+    double m_output = vStretchFactor / (1 + eToNegX) + vShiftFactor;
 
     //Spit out the result.
     return m_output;
@@ -26,6 +31,7 @@ double Sigmoid::activation(double input) const
 double Sigmoid::simplifiedDerivative(double output) const
 {
     //The derivative used in "Intro to Neural Networks"
+    output -= vShiftFactor;
     return ((output / vFactorSqrt) * (vFactorSqrt - output / vFactorSqrt));
 }
 

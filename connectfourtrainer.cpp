@@ -7,7 +7,7 @@ AITrainingStats ConnectFourTrainer::trainNetwork(NeuralNetPlayer *player) const
 
     for(int x = 0; x < m_numTrainingIterations; ++x)
     {
-        //Can't complete until I find a way to check the move table.
+        //Make the player train against itself.
     }
 
     return trainingStats;

@@ -40,6 +40,8 @@ public:
     //Shifts currentState to the state matching the grid in next.
     void setNextMove(const Grid *next);
 
+    int getRoundNumber() { return m_moveTree->getTurnNumber(); }
+
     void undoMove() { m_moveTree->undoMove(m_rulesEngine); }
     void resetTree() { m_moveTree->resetBoard(m_rulesEngine); }
 

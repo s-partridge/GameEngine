@@ -1,8 +1,6 @@
 #ifndef GAMEDATA_H
 #define GAMEDATA_H
 
-#define DEBUG_GAMEDATA
-
 #include "boardstate.h"
 #include "rulesengine.h"
 class GameData

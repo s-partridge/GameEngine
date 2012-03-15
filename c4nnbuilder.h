@@ -7,8 +7,8 @@
 class C4NNBuilder : public NeuralNetBuilder
 {
 public:
-    NeuralNetPlayer *buildNeuralNet(Elements::PlayerType player, RulesEngine *rulesEngine, string filename);
-    NeuralNetPlayer *loadNeuralNet(Elements::PlayerType player, RulesEngine *rulesEngine, string filename);
+    TDNeuralNetPlayer *buildNeuralNet(Elements::PlayerType player, RulesEngine *rulesEngine, string filename);
+    TDNeuralNetPlayer *loadNeuralNet(Elements::PlayerType player, RulesEngine *rulesEngine, string filename);
 };
 
 #endif // C4NNBUILDER_H

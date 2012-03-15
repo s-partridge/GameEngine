@@ -9,8 +9,10 @@
 //#define DEBUG_BOARDSTATE
 //#define DEBUG_STATEWORTH
 //#define DEBUG_GRID
+//#define DEBUG_GAMEDATA
 //#define DEBUG_VIEW
-//#define DEBUG_TRAINER
+#define DEBUG_TRAINER
+//#define DEBUG_NN_ACCBLAMES
 //#define DEBUG_NEURON
 //#define DEBUG_NEURONLAYER
 //#define DEBUG_NEURONLAYER_MOMENTUM
@@ -22,6 +24,8 @@
 //#define DEBUG_C4GENNEXTMOVES
 //#define DEBUG_C4VIEW
 //#define DEBUG_C4GAMEDATA
+
+//#define DEBUG_TDNEURALNET
 
 //Math macros
 //Floor reduces a floating point number to its integer component.
@@ -39,4 +43,5 @@
 #define printLine4(w, x , y, z)     std::cout << w << x << y << z << std::endl
 #define print5(v, w, x, y, z)       std::cout << v << w << x << y << z
 #define printLine5(v, w, x, y, z)   std::cout << v << w << x << y << z << std::endl
+
 #endif // MACROS_H

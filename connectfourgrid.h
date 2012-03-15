@@ -2,6 +2,7 @@
 #define CONNECTFOURGRID_H
 
 #include "grid.h"
+#include "c4constants.h"
 
 class ConnectFourGrid : public Grid
 {

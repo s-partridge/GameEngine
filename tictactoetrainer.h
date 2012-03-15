@@ -10,11 +10,19 @@
 
 #define NUM_CHOICES 2
 
+//Used to compare three board pieces and determine if exactly two are of type opp.
+#define compareSet(x, y, z, opp) ( (x == opp && y == x && z != x) || (x == opp && y != x && z == x) || (x != y && y == opp && z == y) )
+
 class TicTacToeTrainer : public Trainer
 {
     BoardState *pickNextMoveToTrain(BoardState *currentState) const;
     AITrainingStats trainOnBestTrackPlus(NeuralNetPlayer *player) const;
     AITrainingStats trainOnBestStatesOnly(NeuralNetPlayer *player) const;
+
+    AITrainingStats trainVersusSelf(NeuralNetPlayer *player) const;
+    AITrainingStats trainVersusTerriblePlayer(NeuralNetPlayer *player) const;
+
+    void moveBlocker(BoardState *&currentState, Elements::PlayerType friendly, Elements::PlayerType opponent) const;
 
     void trainOnce(NeuralNetPlayer *player, Grid *gameBoard, Grid *userOutput,
                    double *&expected, double *&outputs, Elements::PlayerType currentPlayer,

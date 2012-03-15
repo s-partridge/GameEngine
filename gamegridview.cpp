@@ -24,6 +24,13 @@ GameGridView::GameGridView(int width, int height, QWidget *parent) :
             //Allows the grid itself to control actions from a click.
             connect(m_squares[x][y], SIGNAL(buttonClicked(int, int)), this, SLOT(squareClicked(int, int)));
 
+            QFont font = m_squares[x][y]->font();
+
+            font.setPointSize(20);
+            font.setBold(true);
+
+            m_squares[x][y]->setFont(font);
+
             //The order for the layout is given by (row, column), which means that the vertical placement is
             //set first.  Therefore, y is passed as the row parameter and x is passed as the column parameter.
             m_centralLayout->addWidget(m_squares[x][y], y, x);
@@ -104,11 +111,22 @@ void GameGridView::updateText(const Grid *newGrid)
         for(int y = 0; y < m_height; ++y)
         {
             if(newGrid->squares[x][y] == Elements::EMPTY)
+            {
                 m_squares[x][y]->setText(" ");
+                            m_squares[x][y]->setStyleSheet("QPushButton { color : black; }");
+            }
             else if(newGrid->squares[x][y] == Elements::TYPE1)
+            {
+                std::cout << "SETTING TEXT!!!\n";
                 m_squares[x][y]->setText("X");
+
+                m_squares[x][y]->setStyleSheet("QPushButton { color : blue; }");
+            }
             else if(newGrid->squares[x][y] == Elements::TYPE2)
+            {
                 m_squares[x][y]->setText("O");
+                m_squares[x][y]->setStyleSheet("QPushButton { color : red; }");
+            }
         }
     }
 }
