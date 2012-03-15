@@ -11,8 +11,8 @@ TDNeuralNetPlayer *TTTNNBuilder::buildNeuralNet(Elements::PlayerType player, Rul
     double *learningRates = new double[numHiddenLayers + 1];
 
     //Two hiden layers, both with 27 neurons.
-    numHiddenNeurons[0] = 45;
-    numHiddenNeurons[1] = 45;
+    numHiddenNeurons[0] = 3;
+    numHiddenNeurons[1] = 3;
 
     //Give the same momentum and learning rate to all layers.
     for(int x = 0; x <= numHiddenLayers; ++x)

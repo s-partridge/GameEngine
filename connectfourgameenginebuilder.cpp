@@ -23,7 +23,7 @@ void ConnectFourGameEngineBuilder::generateGameEngine(MainWindow *&mainWindow, V
     gameController = new GameController();
     gameController->setDataController(dataController);
     gameController->setAIBuilder(new C4NNBuilder());
-    gameController->setAITrainer(new ConnectFourTrainer(NUM_TRAINING_ITERATIONS, rulesEngine));
+    gameController->setAITrainer(new ConnectFourTrainer(C4_NUM_TRAINING_ITERATIONS, rulesEngine));
     gameController->setRulesEngine(rulesEngine);
 
     //Generate the main view.

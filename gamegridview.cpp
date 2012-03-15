@@ -117,7 +117,6 @@ void GameGridView::updateText(const Grid *newGrid)
             }
             else if(newGrid->squares[x][y] == Elements::TYPE1)
             {
-                std::cout << "SETTING TEXT!!!\n";
                 m_squares[x][y]->setText("X");
 
                 m_squares[x][y]->setStyleSheet("QPushButton { color : blue; }");

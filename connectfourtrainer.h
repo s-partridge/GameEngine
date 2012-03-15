@@ -8,7 +8,7 @@
 
 class ConnectFourTrainer : public Trainer
 {
-
+    AITrainingStats trainVersusSelf(NeuralNetPlayer *player) const;
 public:
     ConnectFourTrainer(int numTrainingIterations, RulesEngine *rulesEngine) : Trainer(numTrainingIterations, rulesEngine) {}
 

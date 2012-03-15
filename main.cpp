@@ -1,5 +1,5 @@
-#define SHOW_GUI
-//#define QUICK_TEST
+//#define SHOW_GUI
+#define QUICK_TEST
 
 #include <QtGui/QApplication>
 

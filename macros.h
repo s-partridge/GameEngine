@@ -18,14 +18,14 @@
 //#define DEBUG_NEURONLAYER_MOMENTUM
 //#define DEBUG_NEURALNETWORK
 //#define DEBUG_NNOUTPUTS
-//#define DEBUG_SAVENNP
+#define DEBUG_SAVENNP
 //#define DEBUG_GAMECONTROLLER
 //#define DEBUG_C4RE
 //#define DEBUG_C4GENNEXTMOVES
 //#define DEBUG_C4VIEW
 //#define DEBUG_C4GAMEDATA
 
-//#define DEBUG_TDNEURALNET
+#define DEBUG_TDNEURALNET
 
 //Math macros
 //Floor reduces a floating point number to its integer component.
