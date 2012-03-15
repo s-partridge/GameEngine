@@ -22,7 +22,7 @@ public:
     void setWeightsForNeuron(int index, const double *weights);
 
     //Create weights for this layer's neurons.  Copy the values to weightResult.
-    void generateLayerWeights(double *&weightResult);
+    int generateLayerWeights(double *&weightResult);
 
     //Copy source into dest, starting at a given destination index, given the number of source elements.
     static void copyArray(const double *source, double *&dest, int destStartIndex, int sourceNumElements);

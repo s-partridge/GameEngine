@@ -169,6 +169,8 @@ NeuralNetwork::NeuralNetwork(string filename, const int numInputs, const int num
 #ifdef DEBUG_SAVENNP
     printLine("Creating neural net weights");
 #endif
+
+    int arrLength;
     //Generate weights for hidden layers.
     for(int x = 0; x < m_numHiddenLayers; ++x)
     {
@@ -177,10 +179,10 @@ NeuralNetwork::NeuralNetwork(string filename, const int numInputs, const int num
 #endif
         double *weights;
         //Generate weights for a complete layer, storing the results in wegihts.
-        m_hiddenLayers[x].generateLayerWeights(weights);
+        arrLength = m_hiddenLayers[x].generateLayerWeights(weights);
 
         //Account for each weight.  number of neurons * number of inputs.
-        for(int y = 0; y < (m_hiddenLayers[x].getNumInputs() * m_hiddenLayers[x].getNumNeurons()); ++y)
+        for(int y = 0; y < arrLength; ++y)
         {
 #ifdef DEBUG_SAVENNP
             print2(weights[y], " ");
@@ -198,9 +200,9 @@ NeuralNetwork::NeuralNetwork(string filename, const int numInputs, const int num
         print("Output layer: ");
 #endif
     double *weights;
-    m_outputLayer.generateLayerWeights(weights);
+    arrLength = m_outputLayer.generateLayerWeights(weights);
 
-    for(int x = 0; x < ((m_outputLayer.getNumInputs() + 1) * m_hiddenLayers[m_numHiddenLayers - 1].getNumNeurons()); ++x)
+    for(int x = 0; x < arrLength; ++x)
     {
 #ifdef DEBUG_SAVENNP
             print2(weights[x], " ");

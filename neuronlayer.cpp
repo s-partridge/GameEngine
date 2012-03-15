@@ -72,10 +72,11 @@ void NeuronLayer::setWeightsForNeuron(int index, const double *weights)
     m_neurons[index].setWeights(weights);
 }
 
-void NeuronLayer::generateLayerWeights(double *&weightResults)
+int NeuronLayer::generateLayerWeights(double *&weightResults)
 {
     //Make the array large enough to hold all weights.
-    weightResults = new double[m_numNeurons * m_neurons[0].getNumWeights()];
+    int arrLength = m_numNeurons * m_neurons[0].getNumWeights();
+    weightResults = new double[arrLength];
 
     double *neuronWeights = new double[m_neurons[0].getNumWeights()];
 
@@ -95,6 +96,8 @@ void NeuronLayer::generateLayerWeights(double *&weightResults)
     }
 
     delete [] neuronWeights;
+
+    return arrLength;
 }
 
 void NeuronLayer::copyArray(const double *source, double *&dest, int destStartIndex, int sourceNumElements)
