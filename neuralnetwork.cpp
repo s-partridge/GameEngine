@@ -492,11 +492,13 @@ void NeuralNetwork::getResults(const double *inputs, double *&outputs)
     if(outputs != NULL)
         delete [] outputs;
 
-    double *tempInputs = new double[m_numInputs];
-
+    print("WILL IT WORK???");
+    double *tempInputs = NULL;
+    tempInputs = new double[m_numInputs];
+    printLine("  YES!!!");
     NeuronLayer::copyArray(inputs, tempInputs, m_numInputs);
 
-#ifdef DEBUG_NEURALNETWORK
+#ifdef DEBUG_NNOUTPUTS
     printLine("Calculating results from hidden layers");
 #endif
 

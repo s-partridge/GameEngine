@@ -105,6 +105,42 @@ bool ConnectFourRulesEngine::isValidMove(const Grid *currentState, const Grid *n
 void ConnectFourRulesEngine::genNextMoves(const Grid *current, Grid **&nextMoves, Elements::PlayerType currentPlayer, int &numNextStates) const
 {
     numNextStates = 0;
+    int nextStateIndex = 0;
+
+    //The number of possible moves is equal to the number of open columns.
+    for(int x = 0; x < C4_WIDTH; ++x)
+    {
+        if(current->squares[x][0] == Elements::EMPTY)
+            ++numNextStates;
+    }
+
+    nextMoves = new Grid*[numNextStates];
+
+    //Create new grids.
+    //Make sure each of them is the same as current.
+    int nextColumn = 0;
+    for(int x = 0; x < numNextStates; ++x)
+    {
+        nextMoves[x] = new ConnectFourGrid();
+        *nextMoves[x] = *current;
+
+        //Add one new piece to each grid.
+
+        //Make sure that nextColumn represent an open spot.
+        while(nextMoves[x]->squares[nextColumn][0] != Elements::EMPTY)
+        {
+            ++nextColumn;
+        }
+
+        updateGrid(nextMoves[x], nextColumn, currentPlayer);
+        //A board state has been recorded for this column.  Move on to the next one.
+        ++nextColumn;
+    }
+
+
+
+    /*
+    numNextStates = 0;
 
     int nextStateIndex = 0;
 
@@ -119,8 +155,15 @@ void ConnectFourRulesEngine::genNextMoves(const Grid *current, Grid **&nextMoves
     printLine3("There are ", numNextStates, " legal moves from this state.");
 #endif
     //Initialize the array of next possible states.
-    nextMoves = new Grid*[numNextStates];
 
+#ifdef DEBUG_C4GENNEXTMOVES
+    printLine4("Grid: ", nextMoves, "\tCurrent: ", current);
+#endif
+
+    nextMoves = new Grid*[numNextStates];
+#ifdef DEBUG_C4GENNEXTMOVES
+    printLine2("New grid: ", nextMoves);
+#endif
     for(int x = 0; x < numNextStates; ++x)
     {
         nextMoves[x] = new ConnectFourGrid();
@@ -141,7 +184,7 @@ void ConnectFourRulesEngine::genNextMoves(const Grid *current, Grid **&nextMoves
             ++nextStateIndex;
         }
         ++x;
-    }
+    }*/
 
 #ifdef DEBUG_C4GENNEXTMOVES
     //Display the board.
@@ -165,6 +208,9 @@ void ConnectFourRulesEngine::genNextMoves(const Grid *current, Grid **&nextMoves
 
 void ConnectFourRulesEngine::updateGrid(Grid *grid, const double *outputs, Elements::PlayerType player) const
 {
+#ifdef DEBUG_C4GENNEXTMOVES
+    printLine4("Grid: ", grid, "\tOutputs: ", outputs);
+#endif
     //Outputs is expected to contain a column value.
     int move = round(*outputs);
 
@@ -189,7 +235,14 @@ void ConnectFourRulesEngine::updateGrid(Grid *grid, const double *outputs, Eleme
 
 void ConnectFourRulesEngine::updateGrid(Grid *grid, int output, Elements::PlayerType player) const
 {
+    int row = getFirstOpenSpace(grid, output);
 
+    if(row != -1)
+        grid->squares[output][row] = (Elements::GenericPieceType)player;
+    /*
+#ifdef DEBUG_C4GENNEXTMOVES
+    printLine2("Grid: ", grid);
+#endif
     if(output >= 0 && output < C4_WIDTH)
     {
         //Find the lowest open space in the grid.
@@ -206,7 +259,7 @@ void ConnectFourRulesEngine::updateGrid(Grid *grid, int output, Elements::Player
     else
     {
         std::cerr << "INVALID MOVE WAS ATTEMPTED" << std::endl;
-    }
+    }*/
 }
 
 int ConnectFourRulesEngine::getFirstOpenSpace(const Grid *grid, int column) const
@@ -226,9 +279,9 @@ bool ConnectFourRulesEngine::gridToDoubleArray(const Grid *grid, double *&array,
     //Iterate over each space, assuming there is enough space in the receiving array.
     if(numElements - index >= C4_NUM_INPUTS)
     {
-        for(int x = 0; x < C4_HEIGHT; ++x)
+        for(int x = 0; x < C4_WIDTH; ++x)
         {
-            for(int y = 0; y < C4_WIDTH; ++y)
+            for(int y = 0; y < C4_HEIGHT; ++y)
             {
                 //Convert the square to a double and copy it over.
                 array[index] = pieceTypeToDouble(player, grid->squares[x][y]);

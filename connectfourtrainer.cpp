@@ -48,6 +48,8 @@ AITrainingStats ConnectFourTrainer::trainVersusSelf(NeuralNetPlayer *player) con
 
             current->genNextStates(1, m_rulesEngine);
 
+            //root->printMemoryAddresses(0);
+
             //Switch between looking for best move for p1 and best move for p2.
             if(numRounds % 2)
                 player->setCalcAsMax(false);
@@ -90,8 +92,6 @@ AITrainingStats ConnectFourTrainer::trainVersusSelf(NeuralNetPlayer *player) con
             trainingStats.init();
         }
 #endif
-
-        //player->reset();
     }
 
     delete root;

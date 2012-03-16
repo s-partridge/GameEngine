@@ -2,6 +2,7 @@
 #define BOARDSTATE_H
 
 #include <fstream>
+#include <iomanip>
 
 using namespace std;
 
@@ -43,6 +44,8 @@ public:
     int getP1StateWorth() { return m_P1StateWorth; }
     int getP2StateWorth() { return m_P2StateWorth; }
     int getLastSquareMoved() { return m_lastSquare; }
+
+    void printMemoryAddresses(int indentation) const;
 
     double getMoveWorth() { return m_moveWorth; }
     const Grid *getCurrentGrid() const { return m_currentGrid; }

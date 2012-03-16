@@ -324,3 +324,25 @@ void BoardState::deleteNextStates()
         m_nextStates = NULL;
     }
 }
+
+void BoardState::printMemoryAddresses(int indentation) const
+{
+#ifdef DEBUG_MEMORY
+    print2(setw(indentation), "");
+    printLine2("Board state: ", this);
+    print2(setw(indentation), "");
+    printLine2(" Current Grid: ", m_currentGrid);
+    print2(setw(indentation), "");
+    printLine2(" Grid Squares: ", m_currentGrid->squares);
+    if(m_numNextStates > 0)
+    {
+        print2(setw(indentation), "");
+        printLine("Children:");
+    }
+
+    for(int x = 0; x < m_numNextStates; ++x)
+    {
+        m_nextStates[x]->printMemoryAddresses(indentation + 4);
+    }
+#endif
+}

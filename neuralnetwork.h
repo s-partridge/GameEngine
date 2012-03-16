@@ -26,7 +26,8 @@ public:
     ~NeuralNetwork() { purge(); }
 
     //Returns the number of neuron layers, including both hidden and output.
-    int getNumLayers() { return m_numHiddenLayers + 1; }
+    int getNumLayers() const { return m_numHiddenLayers + 1; }
+    int getNumInputs() const { return m_numInputs; }
 
     void setLayerWeights(int layer, double **weights);
     void setLayerMomentum(int layer, double momentum);

@@ -6,10 +6,10 @@
 #include "tdneuralnetwork.h"
 
 #define GAMMA 1.0
-#define LAMBDA 0.3
-#define TD_LEARN_RATE 0.5
+#define LAMBDA 0.5
+#define TD_LEARN_RATE 0.2
 #define TD_NUM_OUTPUTS 1
-#define TD_EXPECTED_ROUNDS 20
+#define TD_EXPECTED_ROUNDS 10
 
 #define RANDOM_MOVE_INTERVAL 120
 

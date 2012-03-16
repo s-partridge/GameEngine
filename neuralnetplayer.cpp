@@ -101,7 +101,7 @@ void NeuralNetPlayer::getResults(const BoardState *currentState, double *&result
 void NeuralNetPlayer::getResults(const Grid *currentGrid, Elements::PlayerType player, double *&results)
 {
     double *inputs = new double[NUM_INPUTS];
-    m_rulesEngine->gridToDoubleArray(currentGrid, inputs, player, 0, NUM_INPUTS);
+    m_rulesEngine->gridToDoubleArray(currentGrid, inputs, player, 0, m_neuralNetwork->getNumInputs() );
 
     //Pass the array to the neural network to generate a new move, storing it in results.
     m_neuralNetwork->getResults(inputs, results);

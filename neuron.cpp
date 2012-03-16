@@ -117,7 +117,7 @@ double Neuron::summation()
 
     for(x = 0; x < m_numInputs; ++x)
     {
-#ifdef DEBUG_NEURON
+#ifdef DEBUG_NNOUTPUTS
         print3("\n\tX = ", x, "; ");
         print3("\tPrevious sum ", sum, " + ");
         print3("Input ", m_inputs[x], " * ");

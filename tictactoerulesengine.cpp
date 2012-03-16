@@ -26,6 +26,10 @@ void TicTacToeRulesEngine::genNextMoves(const Grid *current, Grid **&nextMoves, 
         return;
     }
 
+#ifdef DEBUG_C4GENNEXTMOVES
+    printLine3("There are ", numNextStates, " legal moves from this state.");
+#endif
+
     nextMoves = new Grid*[numNextStates];
 
     for(int x = 0; x < numNextStates; ++x)
@@ -51,21 +55,29 @@ void TicTacToeRulesEngine::genNextMoves(const Grid *current, Grid **&nextMoves, 
             {
                 nextMoves[stateCount]->squares[x][y] = (Elements::GenericPieceType)currentPlayer;
 
-#ifdef DEBUG_RULESENGINE
-                print("New grid values:");
-                for(int w = 0; w < 3; ++w)
-                {
-                    for(int v = 0; v < 3; ++v)
-                    {
-                        printLine5(w, ", ", v, " = ", nextMoves[stateCount]->squares[w][v]);
-                    }
-                }
-#endif
-
                 ++stateCount;
             }
         }
     }
+
+#ifdef DEBUG_TTTGENNEXTMOVES
+    //Display the board.
+    for(int y = 0; y < 3; ++y)
+    {
+        int nextStateIndex = 0;
+        while(nextStateIndex < numNextStates)
+        {
+            for(int x = 0; x < 3; ++x)
+            {
+                print2(nextMoves[nextStateIndex]->squares[x][y], " ");
+            }
+            print("\t");
+            ++nextStateIndex;
+        }
+        print("\n");
+    }
+    printLine("\n");
+#endif
 
     return;
 }

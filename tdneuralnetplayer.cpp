@@ -170,7 +170,7 @@ void TDNeuralNetPlayer::makeMove(const BoardState *currentState, Grid *&nextMove
 
         //Store the values from the nerual net's calculation.
         //There can only be one output for TD-learning.  So, only use
-        m_oldWeights.previousOutputs[m_currentRound][0] = allResults[bestIndex];
+        //m_oldWeights.previousOutputs[m_currentRound][0] = allResults[bestIndex];
 
         //Return the grid of the best state.
         *nextMove = *(currentState->getStateWithIndex(bestIndex)->getCurrentGrid());
@@ -290,7 +290,7 @@ void TDNeuralNetPlayer::endStateReached(BoardState *currentState, Elements::Game
     }
     printLine("");
 #endif
-
+    reset();
 }
 
 void TDNeuralNetPlayer::reset()

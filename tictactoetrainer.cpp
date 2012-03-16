@@ -5,8 +5,8 @@ AITrainingStats TicTacToeTrainer::trainNetwork(NeuralNetPlayer *player) const
 {
     //return trainOnBestTrackPlus(player);
     //return trainOnBestStatesOnly(player);
-    return trainVersusTerriblePlayer(player);
-    //return trainVersusSelf(player);
+    //return trainVersusTerriblePlayer(player);
+    return trainVersusSelf(player);
 }
 
 void switchCurrentPlayer(Elements::PlayerType &player)
@@ -176,7 +176,7 @@ AITrainingStats TicTacToeTrainer::trainVersusSelf(NeuralNetPlayer *player) const
 
     int numRounds;
 
-    for(int x = 0; x < m_numTrainingIterations; ++x)
+    for(int x = 0; x < 1; ++x)
     {
         currentPlayer = Elements::PLAYER_1;
 

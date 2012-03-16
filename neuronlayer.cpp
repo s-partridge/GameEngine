@@ -132,12 +132,15 @@ void NeuronLayer::getResult(const double *inputs, double *&outputs)
         //for m_activation.activate()
         outputs[x] = m_neurons[x].activation(m_activation);
 
-#ifdef DEBUG_NEURONLAYER
+#ifdef DEBUG_NNOUTPUTS
         printLine2("\t\tOutput after activation function: ", outputs[x]);
 #endif
         //Since outputs is storing the results of the activation function, there is no need
         //to return a value.
     }
+#ifdef DEBUG_NNOUTPUTS
+    printLine("");
+#endif
 }
 
 double *NeuronLayer::calcBlames(const double *nextLayerErrors, double **nextLayerWeightMatrix, int numErrors)
