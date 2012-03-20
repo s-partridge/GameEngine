@@ -24,6 +24,7 @@ public:
     //SetCalcAsMax allows an interface to assign minimum or maximum
     //calculations when deciding on a next move.
     virtual void setCalcAsMax(bool calc) {}
+    virtual bool getCalcAsMax() { return true; }
 
     //Save the neural network.
     void saveNeuralNetwork(string filename) { m_neuralNetwork->saveNNP(filename); }

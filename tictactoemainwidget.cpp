@@ -9,7 +9,7 @@ TicTacToeMainWidget::TicTacToeMainWidget(Elements::PlayerType &player, QWidget *
 void TicTacToeMainWidget::init()
 {
     m_gridView = new GameGridView(3, 3, this);
-    m_panelView = new TicTacToeControlView(this);
+    m_panelView = new TicTacToeControlPanelView(this);
 
     m_centralLayout->addWidget(m_gridView);
     m_centralLayout->addWidget(m_panelView);
@@ -78,4 +78,15 @@ void TicTacToeMainWidget::nextMove()
 
     //Emit the makeMove signal.
     emit onMakeMove(gameGrid);
+}
+
+///////////////////////////////
+//TicTacToeControlPanelView//
+///////////////////////////////
+TicTacToeControlPanelView::TicTacToeControlPanelView(QWidget *parent)
+    : ControlPanelView(parent)
+{
+    m_trainBoth = new QPushButton("Train Both AIs", this);
+    m_centralLayout->addWidget(m_trainBoth, 6, 3, 1, 1);
+    connect(m_trainBoth, SIGNAL(clicked()), this, SLOT(onTrainBothAIs()));
 }

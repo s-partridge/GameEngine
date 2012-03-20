@@ -21,10 +21,17 @@ protected slots:
     void nextMove();
 };
 
-class TicTacToeControlView : public ControlPanelView
+class TicTacToeControlPanelView : public ControlPanelView
 {
+    Q_OBJECT
 public:
-    TicTacToeControlView(QWidget *parent = 0) : ControlPanelView(parent) {}
+    TicTacToeControlPanelView(QWidget *parent = 0);
+
+protected:
+    QPushButton *m_trainBoth;
+
+protected slots:
+    void onTrainBothAIs() { emit trainAI(Elements::NONE); }
 };
 
 #endif // TICTACTOEMAINWIDGET_H

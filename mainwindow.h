@@ -36,8 +36,7 @@ signals:
 
     void swapInHuman(Elements::PlayerType playerID);
     void swapInAI(Elements::PlayerType playerID);
-    void loadAIFromFile(Elements::PlayerType playerID, QString filename);
-    void buildNewAI(Elements::PlayerType playerID, QString filename);
+    void buildAI(Elements::PlayerType playerID, QString filename);
     void trainAI(Elements::PlayerType playerID);
 
 public slots:
@@ -62,8 +61,7 @@ private slots:
 
     void onSwapInHuman(Elements::PlayerType playerID) { emit swapInHuman(playerID); }
     void onSwapInAI(Elements::PlayerType playerID) { emit swapInAI(playerID); }
-    void onLoadAIFromFile(Elements::PlayerType playerID, QString filename) { emit loadAIFromFile(playerID, filename); }
-    void onCreateAI(Elements::PlayerType playerID, QString filename) { buildNewAI(playerID, filename); }
+    void onCreateAI(Elements::PlayerType playerID, QString filename) { emit buildAI(playerID, filename); }
     void onTrainAI(Elements::PlayerType playerID) { emit trainAI(playerID); }
 
 private:

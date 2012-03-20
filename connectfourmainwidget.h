@@ -28,5 +28,17 @@ public:
 };
 
 //May subclass ControlPanelView later on.  For now, the default implementation is good enough.
+class ConnectFourControlPanelView : public ControlPanelView
+{
+    Q_OBJECT
+public:
+    ConnectFourControlPanelView(QWidget *parent);
+
+protected:
+    QPushButton *m_trainBoth;
+
+protected slots:
+    void onTrainBothAIs() { emit trainAI(Elements::NONE); }
+};
 
 #endif // CONNECTFOURMAINWIDGET_H

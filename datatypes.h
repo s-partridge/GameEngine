@@ -2,6 +2,7 @@
 #define DATATYPES_H
 
 #define e                   2.71828183
+
 //Used for tic tac toe and connect four, these values are for conversions
 //between enumerated data and double precision inputs for a neural net.
 #define EMPTY_SQUARE        0.5
@@ -21,12 +22,18 @@
 #define DOUBLE_SIZE         8
 
 //Number of iterations to train a neural network in one set.
-#define NUM_TRAINING_ITERATIONS 250000
+#define NUM_TRAINING_ITERATIONS 10000
 namespace NeuralNetValues
 {
+    #define MAX_WEIGHT_VAL  5.0
+    #define MIN_WEIGHT_VAL  -5.0
+
     #define MOMENTUM        0.7
-    #define LEARN_RATE      0.01
+    #define LEARN_RATE      0.02
     #define NUM_LAYERS      2
+
+    #define TTT_NUM_HIDDEN_0 27
+    #define TTT_NUM_HIDDEN_1 27
 
     #define NUM_INPUTS      9
     #define NUM_OUTPUTS     1

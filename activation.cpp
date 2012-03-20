@@ -2,7 +2,7 @@
 
 void Sigmoid::setHorizontalStretchFactor(double stretch)
 {
-    //Don't care about this yet.
+    hStretchFactor = stretch;
 }
 
 void Sigmoid::setVerticalStretchFactor(double stretch)
@@ -18,6 +18,15 @@ void Sigmoid::setVerticalShiftFactor(double shift)
 
 double Sigmoid::activation(double input) const
 {
+    //Complete equation:
+    //          vStretchFactor
+    //    ----------------------------
+    //          (- hStretchFactor * x)
+    //    1 + e^
+
+    if(hStretchFactor != 1.0)
+        input *= hStretchFactor;
+
     //Simplifying the function by separating it into parts.
     double eToNegX = pow(e, -(input));
 
@@ -31,8 +40,13 @@ double Sigmoid::activation(double input) const
 double Sigmoid::simplifiedDerivative(double output) const
 {
     //The derivative used in "Intro to Neural Networks"
+    //If the output from the original function was vertically shifted, it must be "un-shifted"
+    //before the derivative of the input can be found.  Otherwise, the results will be invalid.
     output -= vShiftFactor;
-    return ((output / vFactorSqrt) * (vFactorSqrt - output / vFactorSqrt));
+    if(hStretchFactor != 1.0)
+        return hStretchFactor * ((output / vFactorSqrt) * (vFactorSqrt - output / vFactorSqrt));
+    else
+        return ((output / vFactorSqrt) * (vFactorSqrt - output / vFactorSqrt));
 }
 
 double Sigmoid::trueDerivative(double input) const
@@ -48,5 +62,22 @@ double Sigmoid::trueDerivative(double input) const
 
     derived = (vStretchFactor * eToTheX) / onePlusEToTheXSquared;
 
+    if(hStretchFactor != 1.0)
+        derived *= hStretchFactor;
     return derived;
+}
+
+double Linear::activation(double input) const
+{
+    return vStretchFactor * input + vShiftFactor;
+}
+
+double Linear::simplifiedDerivative(double output) const
+{
+    return vStretchFactor;
+}
+
+double Linear::trueDerivative(double input) const
+{
+    return vStretchFactor;
 }

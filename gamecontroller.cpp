@@ -44,15 +44,43 @@ void GameController::purge()
         delete m_NNPlayer2;
         m_NNPlayer2 = NULL;
     }
-}
 
+    if(m_AIBuilder != NULL)
+    {
+        delete m_AIBuilder;
+        m_AIBuilder = NULL;
+    }
+
+    if(m_AITrainer != NULL)
+    {
+        delete m_AITrainer;
+        m_AITrainer = NULL;
+    }
+}
 //Generate a neural network and store its parameters in the file specified by filename.
 void GameController::createNNPlayer(Elements::PlayerType player, string filename)
 {
 #ifdef DEBUG_GAMECONTROLLER
     printLine4("Generating new NNP for player ", player, " using file ", filename);
 #endif
-    NeuralNetPlayer *newPlayer = m_AIBuilder->buildNeuralNet(player, m_rulesEngine, filename);
+    fstream io;
+
+    io.open(filename.c_str(), ios::in | ios::out);
+
+    NeuralNetPlayer *newPlayer;
+
+    if(io.is_open())
+    {
+        cout << "File exists\n";
+        io.close();
+        newPlayer = m_AIBuilder->loadNeuralNet(player, m_rulesEngine, filename);
+    }
+    else
+    {
+        cout << "File does not exist.  What do I do???\n";
+        newPlayer = m_AIBuilder->buildNeuralNet(player, m_rulesEngine, filename);
+    }
+
 
 #ifdef DEBUG_GAMECONTROLLER
     print("Finished generating NNP");
@@ -60,31 +88,15 @@ void GameController::createNNPlayer(Elements::PlayerType player, string filename
 
     if(player == Elements::PLAYER_1)
     {
+        if(m_NNPlayer1 != NULL)
+            delete m_NNPlayer1;
         m_NNPlayer1 = newPlayer;
         m_NN1Filename = filename;
     }
     else
     {
-        m_NNPlayer2 = newPlayer;
-        m_NN2Filename = filename;
-    }
-}
-
-//Load a neural network from a file specified by filename.
-void GameController::loadNNPlayer(Elements::PlayerType player, string filename)
-{
-    NeuralNetPlayer *newPlayer = m_AIBuilder->loadNeuralNet(player, m_rulesEngine, filename);
-
-    //TODO: Make sure that currentPlayer is updated correctly.
-    //  not sure whether the pointer will update to the correct memory address.
-    //  It may stay at the human address and not move to the NN Player.
-    if(player == Elements::PLAYER_1)
-    {
-        m_NNPlayer1 = newPlayer;
-        m_NN1Filename = filename;
-    }
-    else
-    {
+        if(m_NNPlayer2 != NULL)
+            delete m_NNPlayer2;
         m_NNPlayer2 = newPlayer;
         m_NN2Filename = filename;
     }
@@ -194,17 +206,17 @@ void GameController::gameOver()
     if(m_dataController->getRoundNumber() % 2)
     {
         if(p1IsAI)
-            m_NNPlayer1->endStateReached(temp, endState, true);
+            m_NNPlayer1->endStateReached(temp, endState, true, m_dataController->getRoundNumber());
         if(p2IsAI)
-            m_NNPlayer2->endStateReached(temp, endState, false);
+            m_NNPlayer2->endStateReached(temp, endState, false, m_dataController->getRoundNumber());
 
     }
     else
     {
         if(p1IsAI)
-            m_NNPlayer1->endStateReached(temp, endState, false);
+            m_NNPlayer1->endStateReached(temp, endState, false, m_dataController->getRoundNumber());
         if(p2IsAI)
-            m_NNPlayer2->endStateReached(temp, endState, true);
+            m_NNPlayer2->endStateReached(temp, endState, true, m_dataController->getRoundNumber());
     }
 }
 
@@ -257,7 +269,7 @@ void GameController::switchCurrentPlayer()
 void GameController::trainAI(Elements::PlayerType player = Elements::NONE)
 {
     AITrainingStats results;
-    if(player == Elements::PLAYER_1 || player == Elements::NONE)
+    if(player == Elements::PLAYER_1)
     {
         if(m_NNPlayer1 != NULL)
         {
@@ -266,12 +278,21 @@ void GameController::trainAI(Elements::PlayerType player = Elements::NONE)
         }
     }
 
-    if(player == Elements::PLAYER_2 || player == Elements::NONE)
+    else if(player == Elements::PLAYER_2)
     {
         if(m_NNPlayer2 != NULL)
         {
             results = m_AITrainer->trainNetwork(m_NNPlayer2);
             m_dataController->addToTrainingStats(results, Elements::PLAYER_2);
+        }
+    }
+
+    else
+    {
+        if(m_NNPlayer1 != NULL && m_NNPlayer2 != NULL)
+        {
+            results = m_AITrainer->trainTwoNetworks(m_NNPlayer1, m_NNPlayer2);
+            //Todo: Add a method in dataController to add a total for both players.
         }
     }
 }

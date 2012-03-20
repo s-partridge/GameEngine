@@ -102,7 +102,9 @@ HEADERS  += mainwindow.h \
     connectfourgameenginebuilder.h \
     connectfourtrainer.h \
     tdneuralnetplayer.h \
-    managedarray.h
+    managedarray.h \
+    tdconstants.h
+
 
 
 

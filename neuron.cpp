@@ -83,6 +83,13 @@ void Neuron::changeWeights(const double *changes)
         print2(changes[x], " ");
 #endif
         m_weights[x] += changes[x];
+
+        //Adds a cap to changes in neuron weights.
+        if(m_weights[x] > MAX_WEIGHT_VAL)
+            m_weights[x] = MAX_WEIGHT_VAL;
+
+        else if(m_weights[x] < MIN_WEIGHT_VAL)
+            m_weights[x] = MIN_WEIGHT_VAL;
     }
 #ifdef DEBUG_NEURON
     print("\n");
@@ -128,7 +135,7 @@ double Neuron::summation()
         //print(cout, "", sum, "\n");
     }
 
-#ifdef DEBUG_NEURON
+#ifdef DEBUG_NNOUTPUTS
     print3("\n\tX = ", x, "; ");
     print3("\tPrevious sum ", sum, " + ");
     print3("Bias ", m_weights[x], " = ");
@@ -136,7 +143,7 @@ double Neuron::summation()
     //The bias.
     sum += m_weights[x];
 
-#ifdef DEBUG_NEURON
+#ifdef DEBUG_NNOUTPUTS
     printLine2("\tOutput of summation ", sum);
 #endif
     return sum;
@@ -152,7 +159,7 @@ double Neuron::derivative(const ActivationFunctor *derivate)
 {
     double temp = derivate->simplifiedDerivative(m_output);
 
-#ifdef DEBUG_NEURON
+#ifdef DEBUG_NNDERIVATIVE
         printLine2("\tResult of derivative: ", temp);
 #endif
     return temp;

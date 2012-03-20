@@ -134,12 +134,23 @@ void TDNeuralNetPlayer::makeMove(const BoardState *currentState, Grid *&nextMove
         //Create an array to house results from separate board states.
         double *allResults = new double[currentState->getNumNextStates()];
 
+#ifdef DEBUG_MOVECHOICE
+            print("Getting values for each next state: ");
+#endif
         //Collect state worth from all next states.
         for(int x = 0; x < currentState->getNumNextStates(); ++x)
         {
             getResults(currentState->getStateWithIndex(x)->getCurrentGrid(), m_player, results);
             allResults[x] = results[0];
+
+#ifdef DEBUG_MOVECHOICE
+            print2(" ", allResults[x]);
+#endif
         }
+
+#ifdef DEBUG_MOVECHOICE
+        print("\n");
+#endif
 
         int bestIndex = 0;
 
@@ -154,6 +165,9 @@ void TDNeuralNetPlayer::makeMove(const BoardState *currentState, Grid *&nextMove
                 if(allResults[x] > allResults[bestIndex])
                     bestIndex = x;
             }
+#ifdef DEBUG_MOVECHOICE
+            printLine2("Looking for highest valued move.  Found: ", allResults[bestIndex]);
+#endif
         }
         else
         {
@@ -163,6 +177,9 @@ void TDNeuralNetPlayer::makeMove(const BoardState *currentState, Grid *&nextMove
                 if(allResults[x] < allResults[bestIndex])
                     bestIndex = x;
             }
+#ifdef DEBUG_MOVECHOICE
+            printLine2("Looking for lowest valued move.  Found: ", allResults[bestIndex]);
+#endif
         }
 
 
@@ -174,13 +191,16 @@ void TDNeuralNetPlayer::makeMove(const BoardState *currentState, Grid *&nextMove
 
         //Return the grid of the best state.
         *nextMove = *(currentState->getStateWithIndex(bestIndex)->getCurrentGrid());
+
+        delete [] results;
+        delete [] allResults;
     }
     else
     {
         //Randomly select a move.
         *nextMove = *(currentState->getStateWithIndex(rand() % currentState->getNumNextStates())->getCurrentGrid());
         //Evaluate that move and store the result.
-        getResults(nextMove, m_player, m_oldWeights.previousOutputs[m_currentRound]);
+        //getResults(nextMove, m_player, m_oldWeights.previousOutputs[m_currentRound]);
     }
 
     //Skip the counter to cover opponent's turn.
@@ -191,11 +211,11 @@ void TDNeuralNetPlayer::endStateReached(BoardState *currentState, Elements::Game
 {
     double finalStateValue;
     if(finalState == Elements::DRAW)
-        finalStateValue = 0.0;
-    else if(finalState == (Elements::GameState)m_player)
-        finalStateValue = 1.0;
+        finalStateValue = TD_DRAW;
+    else if(finalState == Elements::P1WIN)//(Elements::GameState)m_player)
+        finalStateValue = TD_WIN;
     else
-        finalStateValue = -1.0;
+        finalStateValue = TD_LOSS;
 
 #ifdef DEBUG_TDNEURALNET
     printLine4("Player: ", m_player, "\tWinner: ", finalState);
@@ -244,10 +264,11 @@ void TDNeuralNetPlayer::endStateReached(BoardState *currentState, Elements::Game
     {
         testState = testState->getParent();
         getResults(testState, m_oldWeights.previousOutputs[z]);
-#ifdef DEBUG_TDNEURALNET
+
+/*#ifdef DEBUG_TDNEURALNET
         printLine(*(testState->getCurrentGrid()));
         printLine(m_oldWeights.previousOutputs[z][0]);
-#endif
+#endif*/
 
         --z;
     }
@@ -280,7 +301,6 @@ void TDNeuralNetPlayer::endStateReached(BoardState *currentState, Elements::Game
     //After the entire game has been analyzed, apply the blames.
     m_neuralNetwork->applyWeightChanges();
 
-
 #ifdef DEBUG_TDNEURALNET
     printLine("Actual outputs vs Ideal values");
     for(int x = 0; x < m_oldWeights.numRounds(); ++x)
@@ -290,7 +310,11 @@ void TDNeuralNetPlayer::endStateReached(BoardState *currentState, Elements::Game
     }
     printLine("");
 #endif
-    reset();
+    if(m_player == Elements::PLAYER_1)
+        m_currentRound = 0;
+    else
+        m_currentRound = 1;
+    //reset();
 }
 
 void TDNeuralNetPlayer::reset()

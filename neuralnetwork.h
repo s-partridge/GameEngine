@@ -28,6 +28,7 @@ public:
     //Returns the number of neuron layers, including both hidden and output.
     int getNumLayers() const { return m_numHiddenLayers + 1; }
     int getNumInputs() const { return m_numInputs; }
+    int getNumOutputs() const { return m_numOutputs; }
 
     void setLayerWeights(int layer, double **weights);
     void setLayerMomentum(int layer, double momentum);

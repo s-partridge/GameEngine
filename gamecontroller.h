@@ -24,9 +24,9 @@ public:
 
     void purge();
 
-    //TODO: create or load a neural network from a file.
+    //Create or load a neural network from a file.  Generates a new player if the
+    //file passed in does not exist.  Otherwise, loads network values.
     void createNNPlayer(Elements::PlayerType player, string filename);
-    void loadNNPlayer(Elements::PlayerType player, string filename);
 
     //Save a neural network, given a new file name.
     void saveNNPlayer(Elements::PlayerType player, string filename);
@@ -50,6 +50,7 @@ public:
     bool isGameOver(const Grid *move) { return m_dataController->isGameOver(move); }
 
     //Trains the AI matching the given player ID.
+    //Trains both AIs if Elements::NONE is passed, assuming both player are AI.
     //Does nothing if player is human.
     void trainAI(Elements::PlayerType player);
 

@@ -22,8 +22,8 @@ void ControlPanelView::createItems()
     m_AI2 = new QPushButton("Set Player 2\n to AI", this);
     m_nextMove  = new QPushButton("Make Move", this);
     m_newGameButton = new QPushButton("Reset Game", this);
-    m_createAI1 = new QPushButton("Create AI 1\nfrom this file", this);
-    m_createAI2 = new QPushButton("Create AI 2\nfrom this file", this);
+    m_createAI1 = new QPushButton("Create/Load AI 1\nfrom this file", this);
+    m_createAI2 = new QPushButton("Create/Load AI 2\nfrom this file", this);
     m_trainAI1Button = new QPushButton("Train Neural Net Player 1", this);
     m_trainAI2Button = new QPushButton("Train Neural Net Player 2", this);
 

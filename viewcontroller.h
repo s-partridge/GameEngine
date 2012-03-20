@@ -35,8 +35,7 @@ public slots:
 private slots:
     void swapInHuman(Elements::PlayerType playerID) { m_gameController->swapAIForHuman(playerID); }
     void swapInAI(Elements::PlayerType playerID) { m_gameController->swapHumanForAI(playerID); }
-    void loadAIFromFile(Elements::PlayerType playerID, QString filename) { m_gameController->loadNNPlayer(playerID, filename.toStdString()); }
-    void buildNewAI(Elements::PlayerType playerID, QString filename) { m_gameController->createNNPlayer(playerID, filename.toStdString()); }
+    void buildAI(Elements::PlayerType playerID, QString filename) { m_gameController->createNNPlayer(playerID, filename.toStdString()); }
     void trainAI(Elements::PlayerType playerID) { m_gameController->trainAI(playerID); }
     void newGame();
 

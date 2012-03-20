@@ -13,6 +13,8 @@ void trainXOR();
 
 void setSpecificWeights(NeuralNetwork *network);
 
+void tryWriteFiles(string filename);
+
 int main(int argc, char *argv[])
 {
 #ifdef SHOW_GUI
@@ -34,19 +36,26 @@ int main(int argc, char *argv[])
 
     print("Finished generating objects\n");
 
+    //gameController->createNNPlayer(Elements::PLAYER_1, "r.nnp");
+    //gameController->trainAI(Elements::PLAYER_1);
+
     mainWindow->show();
 
     print("Showing main window\n");
 
     static int retVal = a.exec();
 
+    delete statisticsData;
+    delete dataController;
     delete gameController;
+    delete viewController;
 
     return retVal;
 #endif
 
 #ifdef QUICK_TEST
     trainXOR();
+    //tryWriteFiles("test6.bin");
     //RulesEngine *re = new TicTacToeRulesEngine();
     //testC4RulesEngine();
 
@@ -171,21 +180,68 @@ int main(int argc, char *argv[])
 #endif
 }
 
+void tryWriteFiles(string filename)
+{
+    fstream io;
+    ifstream i;
+    ofstream o;
+
+    io.open(filename.c_str(), ios::in | ios::out);
+
+    if(io.is_open())
+    {
+        cout << "File exists\n";
+        io.close();
+        io.open(filename.c_str(), ios::out | ios::binary | ios::app);
+    }
+    else
+    {
+        cout << "File does not exist.  What do I do???\n";
+        io.open(filename.c_str(), ios::in | ios::out | ios::binary | ios::trunc);
+    }
+    string str = "abc.";
+    string output = "";
+
+    io << str;
+    /*
+    for(int x = 0; x < str.length(); ++x)
+    {
+        io.write((char *)&str[x], sizeof(char));
+    }
+*/
+    io.close();
+
+    i.open(filename.c_str(), ios::binary);
+
+    char fout;
+ /*   while(!i.eof())
+    {
+        i.read((char *)&fout, sizeof(char));
+        output += fout;
+    }*/
+    i >> output;
+
+    cout << output << endl;
+}
+
 void trainXOR()
 {
     int numInputs = 2;
     int numOutputs = 1;
-    int numHiddenLayers = 1;
+    int numHiddenLayers = 2;
 
-    int *numHidden = new int[1];
-    double *momentums = new double[2];
-    double *learnRates = new double[2];
+    int *numHidden = new int[2];
+    double *momentums = new double[3];
+    double *learnRates = new double[3];
 
     numHidden[0] = 3;
+    numHidden[1] = 3;
     momentums[0] = 0.9;
     momentums[1] = 0.9;
-    learnRates[0] = 0.7;
-    learnRates[1] = 0.7;
+    momentums[2] = 0.9;
+    learnRates[0] = 0.02;
+    learnRates[1] = 0.02;
+    learnRates[2] = 0.02;
 
     double **inputs = new double*[4];
     for(int x = 0; x < 4; ++x)
@@ -215,14 +271,39 @@ void trainXOR()
 
     double *outputs = new double[1];
 
-    NeuralNetwork *net = new NeuralNetwork("xor.nnp", numInputs, numOutputs, numHiddenLayers, numHidden, momentums, learnRates);
+    string filename = "xor18.nnp";
+    fstream io;
+
+    io.open(filename.c_str(), ios::in | ios::out);
+
+    NeuralNetwork *net;
+
+    if(io.is_open())
+    {
+        cout << "File exists\n";
+        io.close();
+        net = new NeuralNetwork(filename);
+    }
+    else
+    {
+        cout << "File does not exist.  What do I do???\n";
+        net = new NeuralNetwork(filename, numInputs, numOutputs, numHiddenLayers, numHidden, momentums, learnRates);
+    }
+
 
     ActivationFunctor *newFunctor = new Sigmoid();
 
     //setSpecificWeights(net);
 
     net->setLayerActivation(0, newFunctor);
+
+    newFunctor = new Sigmoid();
     net->setLayerActivation(1, newFunctor);
+
+    newFunctor = new Sigmoid();
+    ((Sigmoid *)newFunctor)->setHorizontalStretchFactor(2);
+    net->setLayerActivation(2, newFunctor);
+
 
     for(int x = 0; x < 500; ++x)
     {
@@ -231,9 +312,9 @@ void trainXOR()
             //int z = rand() % 4;
             cout << "\tinputs: " << inputs[y][0] << ", " << inputs[y][1];
             net->getResults(inputs[y], outputs);
-            cout << "\toutputs: " << outputs[0];// ", " << outputs[1];
+            cout << "\toutputs: " << outputs[0];
             net->backpropagate(outputs, expected[y]);
-            cout << "\texpected: " << expected[y][0] << "\n";// << expected[y][1] << "\n";
+            cout << "\texpected: " << expected[y][0] << "\n";
         }
         net->applyWeightChanges();
     }

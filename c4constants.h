@@ -2,7 +2,7 @@
 #define C4CONSTANTS_H
 
 //C4 constants
-#define C4_NUM_TRAINING_ITERATIONS  1
+#define C4_NUM_TRAINING_ITERATIONS  2000
 //Board size constants
 #define C4_WIDTH            7
 #define C4_HEIGHT           6
@@ -12,8 +12,8 @@
 #define C4_NUM_OUTPUTS      1
 
 #define C4_NUM_LAYERS       2
-#define C4_NUM_NEURONS_1    4
-#define C4_NUM_NEURONS_2    4
+#define C4_NUM_NEURONS_1    21
+#define C4_NUM_NEURONS_2    21
 
 #define C4_OUTPUT_STRETCH   5
 

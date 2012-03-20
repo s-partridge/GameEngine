@@ -4,14 +4,9 @@
 #include "neuralnetplayer.h"
 #include "managedarray.h"
 #include "tdneuralnetwork.h"
+#include "tdconstants.h"
 
-#define GAMMA 1.0
-#define LAMBDA 0.5
-#define TD_LEARN_RATE 0.2
-#define TD_NUM_OUTPUTS 1
-#define TD_EXPECTED_ROUNDS 10
-
-#define RANDOM_MOVE_INTERVAL 120
+//#define DEBUG_MOVECHOICE
 
 //Used to contain a record of each set of outputs and output layer weight changes
 //for an entire game.  Meant to be stored until backpropagation starts at the end,
@@ -54,6 +49,7 @@ public:
     void makeMove(const BoardState *currentState, Grid *&nextMove);
 
     void setCalcAsMax(bool calc) { calcAsMax = calc; }
+    bool getCalcAsMax() { return calcAsMax; }
 
     void endStateReached(BoardState *currentState, Elements::GameState finalState, bool youMovedLast, int numRounds = 0);
 

@@ -11,18 +11,27 @@ NeuralNetwork::NeuralNetwork(string filename) : m_filename(filename)
     m_activation = new Sigmoid();
 
     //skip the first byte.
-    fstream saveFile(filename.c_str(), fstream::in | fstream::binary);
+    ifstream saveFile(filename.c_str(), fstream::binary);
 
-    saveFile.seekg(5);
-
+    //saveFile.seekg(5);
+    char version;
+    saveFile.read((char *)&version, BYTE_SIZE);
+    int hiddenOffset;
+    saveFile.read((char *)&hiddenOffset, INT_SIZE);
     //num inputs
-    saveFile.read((char *)&m_numInputs, 4);
-
+    saveFile.read((char *)&m_numInputs, INT_SIZE);
     //num hidden layers
-    saveFile.read((char *)&m_numHiddenLayers, 4);
-
+    saveFile.read((char *)&m_numHiddenLayers, INT_SIZE);
     //num output neurons
-    saveFile.read((char *)&m_numOutputs, 4);
+    saveFile.read((char *)&m_numOutputs, INT_SIZE);
+
+#ifdef DEBUG_SAVENNP
+    print("Reading metadata from file\n");
+    printLine4("NN Version: ", (int)version, "\nOffset for hidden weights: ", hiddenOffset);
+    printLine4("Number of inputs: ", m_numInputs, "\nNumber of hidden layers: ", m_numHiddenLayers);
+    printLine2("Number of outputs: ", m_numOutputs);
+
+#endif
 
     //num hidden neurons 1
     //num hidden neurons 2 ...
@@ -30,12 +39,18 @@ NeuralNetwork::NeuralNetwork(string filename) : m_filename(filename)
 
     int x;
     int temp;
-    saveFile.read((char *)&temp, 4);
+    saveFile.read((char *)&temp, INT_SIZE);
+#ifdef DEBUG_SAVENNP
+    printLine2("Number of neurons in hidden layer 0: ", temp);
+#endif
     m_hiddenLayers[0].init(temp, m_numInputs);
 
     for(x = 1; x < m_numHiddenLayers; ++x)
     {
-        saveFile.read((char *)&temp, 4);
+        saveFile.read((char *)&temp, INT_SIZE);
+#ifdef DEBUG_SAVENNP
+        printLine4("Number of neurons in hidden layer ", x, ": ", temp);
+#endif
         m_hiddenLayers[x].init(temp, m_hiddenLayers[x - 1].getNumNeurons());
     }
 
@@ -49,7 +64,10 @@ NeuralNetwork::NeuralNetwork(string filename) : m_filename(filename)
     for(x = 0; x <= m_numHiddenLayers; ++x)
     {
         //SetLayerMomentum will cover hidden and output layers.
-        saveFile.read((char *)& temp2, 8);
+        saveFile.read((char *)& temp2, DOUBLE_SIZE);
+#ifdef DEBUG_SAVENNP
+        printLine4("Momentum in layer ", x, ": ", temp2);
+#endif
         setLayerMomentum(x, temp2);
     }
 
@@ -57,9 +75,12 @@ NeuralNetwork::NeuralNetwork(string filename) : m_filename(filename)
     //learnrate 2
     //learnrate 3 ...
 
-    for(x = 0; x < m_numHiddenLayers; ++x)
+    for(x = 0; x <= m_numHiddenLayers; ++x)
     {
-        saveFile.read((char *)& temp2, 8);
+        saveFile.read((char *)& temp2, DOUBLE_SIZE);
+#ifdef DEBUG_SAVENNP
+        printLine4("Learning rate in layer ", x, ": ", temp2);
+#endif
         setLayerLearnRate(x, temp2);
     }
 
@@ -92,7 +113,7 @@ NeuralNetwork::NeuralNetwork(string filename) : m_filename(filename)
         {
             saveFile.read((char *)& weights[z], 8);
         }
-        m_hiddenLayers[x].setWeightsForNeuron(y, weights);
+        m_outputLayer.setWeightsForNeuron(y, weights);
         delete [] weights;
     }
 
@@ -126,7 +147,7 @@ NeuralNetwork::NeuralNetwork(string filename, const int numInputs, const int num
     //hidden weights
     //output weights
 
-    fstream saveFile(filename.c_str(), fstream::out | fstream::binary | fstream::trunc);
+    ofstream saveFile(filename.c_str(), fstream::binary | fstream::trunc);
 
     saveFile.write((char *)&fileVersion, 1);
     saveFile.write((char *)&hiddenOffset, 4);
@@ -134,6 +155,14 @@ NeuralNetwork::NeuralNetwork(string filename, const int numInputs, const int num
     saveFile.write((char *)&numInputs, 4);
     saveFile.write((char *)&numHiddenLayers, 4);
     saveFile.write((char *)&numOutputNeurons, 4);
+
+#ifdef DEBUG_SAVENNP
+    print("Reading metadata from file\n");
+    printLine4("NN Version: ", (int)fileVersion, "\nOffset for hidden weights: ", hiddenOffset);
+    printLine4("Number of inputs: ", m_numInputs, "\nNumber of hidden layers: ", m_numHiddenLayers);
+    printLine2("Number of outputs: ", m_numOutputs);
+
+#endif
 
     m_hiddenLayers = new NeuronLayer[numHiddenLayers];
 
@@ -225,6 +254,12 @@ void NeuralNetwork::purge()
     {
         delete [] m_hiddenLayers;
         m_hiddenLayers = NULL;
+    }
+
+    if(m_activation != NULL)
+    {
+        delete m_activation;
+        m_activation = NULL;
     }
 }
 
@@ -336,6 +371,10 @@ void NeuralNetwork::saveNNP()
 
 #ifdef DEBUG_SAVENNP
     print("\tWriting metadata to file\n");
+    printLine4("NN Version: ", (int)version, "\nOffset for hidden weights: ", hiddenOffset);
+    printLine4("Number of inputs: ", m_numInputs, "\nNumber of hidden layers: ", m_numHiddenLayers);
+    printLine2("Number of outputs: ", m_numOutputs);
+
 #endif
 
     //The network version.
@@ -348,22 +387,32 @@ void NeuralNetwork::saveNNP()
     saveFile.write((char *)&m_numHiddenLayers, INT_SIZE);
     //NumOutputs
     saveFile.write((char *)&m_numOutputs, INT_SIZE);
+
     //NumHiddenNeurons
     for(x = 0; x < m_numHiddenLayers; ++x)
     {
         saveFile.write((char *)&numNeurons[x], INT_SIZE);
+#ifdef DEBUG_SAVENNP
+        printLine4("Neurons in layer ", x, ": ", numNeurons[x]);
+#endif
     }
 
     //Momentums
     for(x = 0; x <= m_numHiddenLayers; ++x)
     {
-        saveFile.write((char *)&momentums[x], INT_SIZE);
+        saveFile.write((char *)&momentums[x], DOUBLE_SIZE);
+#ifdef DEBUG_SAVENNP
+        printLine4("Momentum in layer ", x, ": ", momentums[x]);
+#endif
     }
 
     //Learning rates
     for(x = 0; x <= m_numHiddenLayers; ++x)
     {
         saveFile.write((char *)&learnRates[x], DOUBLE_SIZE);
+#ifdef DEBUG_SAVENNP
+        printLine4("Learning rate in layer ", x, ": ", learnRates[x]);
+#endif
     }
 
 #ifdef DEBUG_SAVENNP
@@ -378,7 +427,7 @@ void NeuralNetwork::saveNNP()
         for(y = 0; y < numNeurons[x]; ++y)
         {
             //Cover each input to each neuron.
-            for(z = 0; z < numInputs[x]; ++z)
+            for(z = 0; z <= numInputs[x]; ++z)
             {
                 saveFile.write((char *)&weights[x][y][z], DOUBLE_SIZE);
             }
@@ -492,10 +541,8 @@ void NeuralNetwork::getResults(const double *inputs, double *&outputs)
     if(outputs != NULL)
         delete [] outputs;
 
-    print("WILL IT WORK???");
-    double *tempInputs = NULL;
-    tempInputs = new double[m_numInputs];
-    printLine("  YES!!!");
+    double *tempInputs = new double[m_numInputs];
+
     NeuronLayer::copyArray(inputs, tempInputs, m_numInputs);
 
 #ifdef DEBUG_NNOUTPUTS

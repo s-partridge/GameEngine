@@ -36,4 +36,19 @@ public:
     double trueDerivative(double input) const;
 };
 
+class Linear : public ActivationFunctor
+{
+    //y = stretch * x + shift
+    double vShiftFactor, vStretchFactor;
+
+public:
+    Linear() : vStretchFactor(1), vShiftFactor(0) {}
+    void setVerticalStretchFactor(double stretch) { vStretchFactor = stretch; }
+    void setVerticalShiftFactor(double shift) { vShiftFactor = shift; }
+
+    double activation(double input) const;
+    double simplifiedDerivative(double output) const;
+    double trueDerivative(double input) const;
+};
+
 #endif // ACTIVATION_H

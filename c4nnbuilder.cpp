@@ -39,8 +39,14 @@ TDNeuralNetPlayer *C4NNBuilder::buildNeuralNet(Elements::PlayerType player, Rule
     activation = new Sigmoid();
     //Stretch the output of the function.  Allows the network to output between 0 and 6;
     //one whole number for each board column.
+/*
     ((Sigmoid *)activation)->setVerticalStretchFactor(2);
     ((Sigmoid *)activation)->setVerticalShiftFactor(-1);
+*/
+    //Represent a value between 0 (loss) and 10 (win)
+    ((Sigmoid *)activation)->setVerticalStretchFactor(2);
+    ((Sigmoid *)activation)->setVerticalShiftFactor(-1);
+    ((Sigmoid *)activation)->setHorizontalStretchFactor(0.4);
 
     newNetwork->setActivationFunction(activation, 2);
 
@@ -71,6 +77,7 @@ TDNeuralNetPlayer *C4NNBuilder::loadNeuralNet(Elements::PlayerType player, Rules
     //one whole number for each board column.
     ((Sigmoid *)activation)->setVerticalStretchFactor(2);
     ((Sigmoid *)activation)->setVerticalShiftFactor(-1);
+    ((Sigmoid *)activation)->setHorizontalStretchFactor(0.4);
 
     newNetwork->setActivationFunction(activation, 2);
 

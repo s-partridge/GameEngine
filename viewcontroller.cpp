@@ -23,10 +23,8 @@ void ViewController::setMainView(MainWindow *window)
             this, SLOT(swapInHuman(Elements::PlayerType)));
     connect(m_mainView, SIGNAL(swapInAI(Elements::PlayerType)),
             this, SLOT(swapInAI(Elements::PlayerType)));
-    connect(m_mainView, SIGNAL(loadAIFromFile(Elements::PlayerType,QString)),
-            this, SLOT(loadAIFromFile(Elements::PlayerType,QString)));
-    connect(m_mainView, SIGNAL(buildNewAI(Elements::PlayerType,QString)),
-            this, SLOT(buildNewAI(Elements::PlayerType,QString)));
+    connect(m_mainView, SIGNAL(buildAI(Elements::PlayerType,QString)),
+            this, SLOT(buildAI(Elements::PlayerType,QString)));
     connect(m_mainView, SIGNAL(trainAI(Elements::PlayerType)),
             this, SLOT(trainAI(Elements::PlayerType)));
 }

@@ -59,7 +59,7 @@ void NeuralNetPlayer::setActivationFunction(ActivationFunctor *activation)
 void NeuralNetPlayer::makeMove(const BoardState *currentState, Grid *&nextMove)
 {
     //Create an array for the outputs.
-    double *results = new double[NUM_OUTPUTS];
+    double *results = new double[m_neuralNetwork->getNumOutputs()];
     //Calculate outputs.
     getResults(currentState, results);
 
@@ -100,8 +100,9 @@ void NeuralNetPlayer::getResults(const BoardState *currentState, double *&result
 
 void NeuralNetPlayer::getResults(const Grid *currentGrid, Elements::PlayerType player, double *&results)
 {
-    double *inputs = new double[NUM_INPUTS];
-    m_rulesEngine->gridToDoubleArray(currentGrid, inputs, player, 0, m_neuralNetwork->getNumInputs() );
+    int numInputs = m_neuralNetwork->getNumInputs();
+    double *inputs = new double[numInputs];
+    m_rulesEngine->gridToDoubleArray(currentGrid, inputs, player, 0, numInputs);
 
     //Pass the array to the neural network to generate a new move, storing it in results.
     m_neuralNetwork->getResults(inputs, results);

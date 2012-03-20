@@ -27,6 +27,12 @@ void NeuronLayer::init(const int numNeurons, const int numInputs)
 
 void NeuronLayer::purge()
 {
+    if(m_neurons != NULL)
+    {
+        delete [] m_neurons;
+        m_neurons = NULL;
+    }
+
     if(m_blames != NULL)
     {
         delete [] m_blames;
@@ -55,12 +61,17 @@ void NeuronLayer::purge()
         m_momentumChanges = NULL;
     }
 
-    if(m_neurons != NULL)
+    if(m_weightChanges != NULL)
     {
-        delete [] m_neurons;
-        m_neurons = NULL;
+        delete [] m_weightChanges;
+        m_weightChanges = NULL;
     }
 
+    if(m_activation != NULL)
+    {
+        delete m_activation;
+        m_activation = NULL;
+    }
 }
 
 void NeuronLayer::setWeightsForNeuron(int index, const double *weights)
@@ -145,7 +156,7 @@ void NeuronLayer::getResult(const double *inputs, double *&outputs)
 
 double *NeuronLayer::calcBlames(const double *nextLayerErrors, double **nextLayerWeightMatrix, int numErrors)
 {
-#ifdef DEBUG_NEURONLAYER
+#ifdef DEBUG_NN_ACCBLAMES
     printLine3("Calculate blames for ", m_numNeurons, " neurons:");
 #endif
 
@@ -158,12 +169,12 @@ double *NeuronLayer::calcBlames(const double *nextLayerErrors, double **nextLaye
             //Y represents a neuron.  There is one error per neuron.
             m_blames[x] += nextLayerErrors[y] * nextLayerWeightMatrix[y][x];
         }
-#ifdef DEBUG_NEURONLAYER
+#ifdef DEBUG_NN_ACCBLAMES
         printLine4("\tNeuron ", x, " blame is ", m_blames[x]);
 #endif
     }
 
-#ifdef DEBUG_NEURONLAYER
+#ifdef DEBUG_NN_ACCBLAMES
     print("\n");
 #endif
     return m_blames;
@@ -176,7 +187,7 @@ double *NeuronLayer::calcBlameDeltas()
         //Call the derivative function for the neurons.
         //Multiply blames by the results.
         m_blames[x] *= m_neurons[x].derivative(m_activation);
-#ifdef DEBUG_NEURONLAYER
+#ifdef DEBUG_NN_ACCBLAMES
         printLine2("\tResult of blame delta: ", m_blames[x]);
 #endif
     }
@@ -198,7 +209,7 @@ void NeuronLayer::resetAccBlames()
 
 void NeuronLayer::calcAccBlames()
 {
-#ifdef DEBUG_NEURONLAYER
+#ifdef DEBUG_NN_ACCBLAMES
     printLine5("\tCalc acc blames for ", m_numNeurons, " neurons with ", m_neurons[0].getNumWeights(), " weights");
 #endif
     //Add each weight to the correct box on accBlames.
@@ -206,7 +217,7 @@ void NeuronLayer::calcAccBlames()
     {
         for(int y = 0; y < m_neurons[0].getNumInputs(); ++y)
         {
-#ifdef DEBUG_NEURONLAYER
+#ifdef DEBUG_NN_ACCBLAMES
             print3("\t\tInput neuron ", y, " output countains ");
             printLine2("value ", m_neurons[0].getInput(y));
 
@@ -215,7 +226,7 @@ void NeuronLayer::calcAccBlames()
 #endif
             m_accBlames[x][y] += m_blames[x] * m_neurons[0].getInput(y);
 
-#ifdef DEBUG_NEURONLAYER
+#ifdef DEBUG_NN_ACCBLAMES
             printLine3("\t\taccumulated blame = ", m_accBlames[x][y], "\n");
 #endif
         }
@@ -223,7 +234,7 @@ void NeuronLayer::calcAccBlames()
         //The bias is stored at the index referenced by numInputs.
         m_accBlames[x][m_neurons[0].getNumInputs()] += m_blames[x];
 
-#ifdef DEBUG_NEURONLAYER
+#ifdef DEBUG_NN_ACCBLAMES
         print3("\t\tBias blame = ", m_accBlames[x][m_neurons[0].getNumInputs()], "\n\n");
 #endif
     }
@@ -317,19 +328,19 @@ void NeuronLayer::changeWeights()
 
 double *OutputLayer::calcOutputBlames(const double *expectedOutput)
 {
-#ifdef DEBUG_NEURONLAYER
+#ifdef DEBUG_NN_ACCBLAMES
     print3("Calculate blames for ", m_numNeurons, " output neurons:");
 #endif
 
     for(int x = 0; x < getNumNeurons(); ++x)
     {
         m_blames[x] = expectedOutput[x] - m_neurons[x].getOutput();
-#ifdef DEBUG_NEURONLAYER
+#ifdef DEBUG_NN_ACCBLAMES
         print2(" ", m_blames[x]);
 #endif
     }
 
-#ifdef DEBUG_NEURONLAYER
+#ifdef DEBUG_NN_ACCBLAMES
     print("\n");
 #endif
     return m_blames;
@@ -337,19 +348,19 @@ double *OutputLayer::calcOutputBlames(const double *expectedOutput)
 
 double *OutputLayer::calcOutputBlames(const double *actual, const double *expectedOutput)
 {
-#ifdef DEBUG_NEURONLAYER
+#ifdef DEBUG_NN_ACCBLAMES
     print3("Calculate blames for ", m_numNeurons, " output neurons:");
 #endif
 
     for(int x = 0; x < getNumNeurons(); ++x)
     {
         m_blames[x] = expectedOutput[x] - actual[x];
-#ifdef DEBUG_NEURONLAYER
+#ifdef DEBUG_NN_ACCBLAMES
         print2(" ", m_blames[x]);
 #endif
     }
 
-#ifdef DEBUG_NEURONLAYER
+#ifdef DEBUG_NN_ACCBLAMES
     print("\n");
 #endif
     return m_blames;

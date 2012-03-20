@@ -31,6 +31,7 @@ public:
 
     void setNumIterations(int numTrainingIterations) { m_numTrainingIterations = numTrainingIterations; }
     virtual AITrainingStats trainNetwork(NeuralNetPlayer *player) const = 0;
+    virtual AITrainingStats trainTwoNetworks(NeuralNetPlayer *player1, NeuralNetPlayer *player2) const {}
 };
 
 #endif // TRAINER_H

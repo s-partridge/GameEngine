@@ -9,7 +9,7 @@ ConnectFourMainWidget::ConnectFourMainWidget(Elements::PlayerType &player, QWidg
 void ConnectFourMainWidget::init()
 {
     m_gridView = new GameGridView(C4_WIDTH, C4_HEIGHT, this);
-    m_panelView = new ControlPanelView(this);
+    m_panelView = new ConnectFourControlPanelView(this);
 
     m_centralLayout->addWidget(m_gridView);
     m_centralLayout->addWidget(m_panelView);
@@ -118,4 +118,15 @@ void ConnectFourMainWidget::nextMove()
 
     //Emit the makeMove signal.
     emit onMakeMove(gameGrid);
+}
+
+///////////////////////////////
+//ConnectFourControlPanelView//
+///////////////////////////////
+ConnectFourControlPanelView::ConnectFourControlPanelView(QWidget *parent)
+    : ControlPanelView(parent)
+{
+    m_trainBoth = new QPushButton("Train Both AIs", this);
+    m_centralLayout->addWidget(m_trainBoth, 6, 3, 1, 1);
+    connect(m_trainBoth, SIGNAL(clicked()), this, SLOT(onTrainBothAIs()));
 }
