@@ -54,7 +54,8 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef QUICK_TEST
-    trainXOR();
+    testC4MoveBlocker();
+    //trainXOR();
     //tryWriteFiles("test6.bin");
     //RulesEngine *re = new TicTacToeRulesEngine();
     //testC4RulesEngine();

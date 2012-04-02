@@ -36,7 +36,7 @@ Elements::GameState ConnectFourRulesEngine::testBoard(const Grid *boardState) co
     }
 
     //Then check the right side.  It will only support right-facing and vertical wins.
-    for(int x = 3; x < 6; ++x)
+    for(int x = 3; x < C4_WIDTH; ++x)
     {
         for(int y = 0; y < C4_HEIGHT - 3; ++y)
         {

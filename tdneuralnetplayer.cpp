@@ -111,6 +111,67 @@ TDNeuralNetPlayer::TDNeuralNetPlayer(Elements::PlayerType player, int numExpecte
     }
 }
 
+double TDNeuralNetPlayer::depthLimitedSearch(const BoardState *currentState, int searchDepth, int &bestIndex, Elements::PlayerType player)
+{
+    //If an end state is found or we have reached the maximum search depth
+    if(searchDepth == 0 || currentState->getNumNextStates() == 0)
+    {
+        //There is only one output from the network for board evaluations.
+        double results[1];
+
+        // TODO:  MAKE SURE THIS WORKS!!!  Need to refactor if this doesn't actually give me a value.
+        getResults(currentState->getCurrentGrid(), player, (double *&)results);
+
+        bestIndex = DLS_EVALUATED_STATE;
+
+        return results[0];
+    }
+    else if(searchDepth > 0)
+    {
+        Elements::PlayerType nextPlayer;
+        double bestResult, nextResult;
+
+        //The current player only matters on a final state.
+        if(player == Elements::PLAYER_1)
+            nextPlayer = Elements::PLAYER_2;
+        else
+            nextPlayer = Elements::PLAYER_1;
+
+        //Get the first result.
+        bestResult = depthLimitedSearch(currentState->getStateWithIndex(0), searchDepth - 1, bestIndex, nextPlayer);
+
+        //BestIndex will only matter for the initial call to DLS, but I'm not sure how to optimize it out at this point,
+        //except to exclude the initial state from DLS entirely.
+        bestIndex = 0;
+
+        //Loop to find the rest of the results.
+        for(int x = 1; x < currentState->getNumNextStates(); ++x)
+        {
+            nextResult  = depthLimitedSearch(currentState->getStateWithIndex(x), searchDepth - 1, bestIndex, nextPlayer);
+            //If calcAsMax is true, look for the highest value.  Otherwise, look for the lowest.
+            if(calcAsMax)
+            {
+                if(nextResult > bestResult)
+                {
+                    bestResult = nextResult;
+                    bestIndex = x;
+                }
+            }
+            else
+            {
+                if(nextResult < bestResult)
+                {
+                    bestResult = nextResult;
+                    bestIndex = x;
+                }
+            }
+        }
+
+        //Return the highest or lowest value.
+        return bestResult;
+    }
+}
+
 void TDNeuralNetPlayer::makeMove(const BoardState *currentState, Grid *&nextMove)
 {
     if(m_currentRound >= m_oldWeights.numRounds())

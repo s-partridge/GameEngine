@@ -133,7 +133,7 @@ Elements::GameState TicTacToeRulesEngine::testBoard(const Grid *boardState) cons
         if(boardState->squares[2][0] == boardState->squares[2][2] && boardState->squares[2][1] == boardState->squares[2][2] ||
                 boardState->squares[0][2] == boardState->squares[2][2] && boardState->squares[1][2] == boardState->squares[2][2])
         {
-            return (Elements::GameState)boardState->squares[0][0];
+            return (Elements::GameState)boardState->squares[2][2];
         }
     }
 

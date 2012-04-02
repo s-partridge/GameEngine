@@ -20,7 +20,6 @@ private:
     void expandArray(double **&arr, int newSize);
     void copyArray(double **source, double **dest, int size);
 
-
 public:
     double **previousOutputs;
     double **idealOutputs;
@@ -56,6 +55,8 @@ public:
     void reset();
 
 private:
+    double depthLimitedSearch(const BoardState *currentState, int searchDepth, int &bestIndex, Elements::PlayerType player);
+
     int m_currentRound;
     PastWeightMatrix m_oldWeights;
 

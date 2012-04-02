@@ -2,7 +2,7 @@
 #define C4CONSTANTS_H
 
 //C4 constants
-#define C4_NUM_TRAINING_ITERATIONS  2000
+#define C4_NUM_TRAINING_ITERATIONS  100000
 //Board size constants
 #define C4_WIDTH            7
 #define C4_HEIGHT           6
@@ -18,6 +18,6 @@
 #define C4_OUTPUT_STRETCH   5
 
 #define C4_MOMENTUM         0.9
-#define C4_LEARN_RATE       0.02
+#define C4_LEARN_RATE       0.03
 
 #endif // C4CONSTANTS_H
