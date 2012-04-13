@@ -117,14 +117,17 @@ double TDNeuralNetPlayer::depthLimitedSearch(const BoardState *currentState, int
     if(searchDepth == 0 || currentState->getNumNextStates() == 0)
     {
         //There is only one output from the network for board evaluations.
-        double results[1];
+        double *results = NULL;
 
         // TODO:  MAKE SURE THIS WORKS!!!  Need to refactor if this doesn't actually give me a value.
         getResults(currentState->getCurrentGrid(), player, (double *&)results);
 
         bestIndex = DLS_EVALUATED_STATE;
 
-        return results[0];
+        double retVal = results[0];
+
+        delete [] results;
+        return retVal;
     }
     else if(searchDepth > 0)
     {
@@ -137,8 +140,13 @@ double TDNeuralNetPlayer::depthLimitedSearch(const BoardState *currentState, int
         else
             nextPlayer = Elements::PLAYER_1;
 
+        //Don't actually care about the best index from child states; only the calling function does.
+        int throwaway;
+
         //Get the first result.
-        bestResult = depthLimitedSearch(currentState->getStateWithIndex(0), searchDepth - 1, bestIndex, nextPlayer);
+        bestResult = depthLimitedSearch(currentState->getStateWithIndex(0), searchDepth - 1, throwaway, nextPlayer);
+
+        double resultTotal = bestResult;
 
         //BestIndex will only matter for the initial call to DLS, but I'm not sure how to optimize it out at this point,
         //except to exclude the initial state from DLS entirely.
@@ -147,7 +155,9 @@ double TDNeuralNetPlayer::depthLimitedSearch(const BoardState *currentState, int
         //Loop to find the rest of the results.
         for(int x = 1; x < currentState->getNumNextStates(); ++x)
         {
-            nextResult  = depthLimitedSearch(currentState->getStateWithIndex(x), searchDepth - 1, bestIndex, nextPlayer);
+            nextResult  = depthLimitedSearch(currentState->getStateWithIndex(x), searchDepth - 1, throwaway, nextPlayer);
+            resultTotal += nextResult;
+
             //If calcAsMax is true, look for the highest value.  Otherwise, look for the lowest.
             if(calcAsMax)
             {
@@ -165,10 +175,15 @@ double TDNeuralNetPlayer::depthLimitedSearch(const BoardState *currentState, int
                     bestIndex = x;
                 }
             }
+
         }
 
         //Return the highest or lowest value.
-        return bestResult;
+        return resultTotal;
+    }
+    else
+    {
+        return -1;
     }
 }
 
@@ -190,10 +205,22 @@ void TDNeuralNetPlayer::makeMove(const BoardState *currentState, Grid *&nextMove
     //Otherwise, randomly select a move from nextMoves.
     if((rand() % RANDOM_MOVE_INTERVAL)/* true*/)
     {
-        //Create an array for the outputs.  There is only one.
+        int bestIndex = 0;
+        //////////////////////////////
+        //Using Depth-limited search//
+        //////////////////////////////
+
+        //DLS returns the value of the best state it found, but we don't really care about that.
+        depthLimitedSearch(currentState, DLS_SEARCH_DEPTH, bestIndex, m_player);
+
+        /*
+        /////////////////////////////////////////
+        ////Use minimax to determine best state//
+        /////////////////////////////////////////
         double *results = NULL;
         //Create an array to house results from separate board states.
         double *allResults = new double[currentState->getNumNextStates()];
+        //Create an array for the outputs.  There is only one.
 
 #ifdef DEBUG_MOVECHOICE
             print("Getting values for each next state: ");
@@ -213,9 +240,6 @@ void TDNeuralNetPlayer::makeMove(const BoardState *currentState, Grid *&nextMove
         print("\n");
 #endif
 
-        int bestIndex = 0;
-
-        //Use minimax to determine best state.
         //Player 1 calculates a highest value (Best move for p1, worst for p2)
         //Player 2 calculates a lowest value (Worst move for p1, best for p2)
         if(calcAsMax)
@@ -243,18 +267,19 @@ void TDNeuralNetPlayer::makeMove(const BoardState *currentState, Grid *&nextMove
 #endif
         }
 
-
         //TODO: Show neural network the previous move so that the expected reward value can be stored as well.
 
         //Store the values from the nerual net's calculation.
         //There can only be one output for TD-learning.  So, only use
         //m_oldWeights.previousOutputs[m_currentRound][0] = allResults[bestIndex];
 
-        //Return the grid of the best state.
-        *nextMove = *(currentState->getStateWithIndex(bestIndex)->getCurrentGrid());
-
         delete [] results;
         delete [] allResults;
+*/
+        //Return the grid of the best state.
+
+
+        *nextMove = *(currentState->getStateWithIndex(bestIndex)->getCurrentGrid());
     }
     else
     {

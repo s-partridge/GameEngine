@@ -4,7 +4,11 @@ void ConnectFourGameData::resetBoard(RulesEngine *rulesEngine)
 {
 #ifdef DEBUG_C4GAMEDATA
     printLine("C4GameData->resetBoard()");
+    std::string gameResult;
+    m_currentState->toString(gameResult);
+    printLine2("Move list:", gameResult);
 #endif
+
     //Delete the entire current tree.
     delete m_startingState;
     init(rulesEngine);

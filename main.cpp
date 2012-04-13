@@ -1,5 +1,5 @@
-#define SHOW_GUI
-//#define QUICK_TEST
+//#define SHOW_GUI
+#define QUICK_TEST
 
 #include <QtGui/QApplication>
 
@@ -8,6 +8,7 @@
 #include "macros.h"
 #include "movetablebuilder.h"
 #include "unitTests.h"
+#include "gamedatabase.h"
 
 void trainXOR();
 
@@ -54,132 +55,83 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef QUICK_TEST
-    testC4MoveBlocker();
-    //trainXOR();
-    //tryWriteFiles("test6.bin");
-    //RulesEngine *re = new TicTacToeRulesEngine();
-    //testC4RulesEngine();
+    std::string game = "0101010";
 
-  /*  RulesEngine *engine = new ConnectFourRulesEngine();
-    Grid *first = engine->createGameSpecificGrid();
+    ConnectFourRulesEngine *re = new ConnectFourRulesEngine;
+    Grid *newGrid = re->createGameSpecificGrid();
 
-    //A starting state for a relatively small move tree.
-    first->squares[0][0] = Elements::EMPTY;
-    first->squares[0][1] = Elements::TYPE2;
-    first->squares[0][2] = Elements::TYPE2;
-    first->squares[0][3] = Elements::TYPE2;
+    BoardState *root = new BoardState(newGrid, NULL, Elements::PLAYER_1, re);
+    BoardState *last = root->fromString(game, 0, re);
 
-    first->squares[1][0] = Elements::EMPTY;
-    first->squares[1][1] = Elements::TYPE1;
-    first->squares[1][2] = Elements::TYPE1;
-    first->squares[1][3] = Elements::TYPE1;
-
-    first->squares[2][0] = Elements::EMPTY;
-    first->squares[2][1] = Elements::TYPE2;
-    first->squares[2][2] = Elements::TYPE2;
-    first->squares[2][3] = Elements::TYPE2;
-
-    first->squares[3][0] = Elements::TYPE2;
-    first->squares[3][1] = Elements::TYPE1;
-    first->squares[3][2] = Elements::TYPE1;
-    first->squares[3][3] = Elements::TYPE1;
-
-    first->squares[4][0] = Elements::TYPE1;
-    first->squares[4][1] = Elements::TYPE2;
-    first->squares[4][2] = Elements::TYPE2;
-    first->squares[4][3] = Elements::TYPE2;
-
-    first->squares[5][0] = Elements::TYPE2;
-    first->squares[5][1] = Elements::TYPE1;
-    first->squares[5][2] = Elements::TYPE1;
-    first->squares[5][3] = Elements::TYPE1;
-
-    cout << "Current grid: " << *first << endl;
-    cout << "Game state:   " << engine->testBoard(first) << endl;
-
-   // BoardState *newState = new BoardState(first, NULL, Elements::PLAYER_1, engine);
-
-  //  MoveTableBuilder builder;
-  //  builder.createMoveTableFile(newState, "/Users/samuel/Documents/c4.mt", engine);
-
-    delete engine;
-    //delete first;
-    delete first;
-
-    /*
-    Grid *first = new TicTacToeGrid();
-    Grid *empty = new TicTacToeGrid();
-
-    BoardState *tree = new BoardState(empty, NULL, Elements::PLAYER_1, re, 2);
-
-    first->squares[0][1] = Elements::TYPE1;
-
-    if(*empty == *(tree->getState(first)->getCurrentGrid()))
+    for(int x = 0; x < C4_HEIGHT; ++x)
     {
-        cout << "YAY!" << endl;
+        for(int y = 0; y < C4_WIDTH; ++y)
+        {
+            cout << last->getCurrentGrid()->squares[y][x] << ' ';
+        }
+        cout << '\n';
+    }
+    cout << endl;
+
+    GameDatabase &db = GameDatabase::getDatabase();
+
+    db.storeGame(last);
+    db.storeGame(last);
+    db.storeGame(last);
+
+    cout << db.size() << ' ';
+    db.removeDuplicateGames();
+    cout << db.size() << '\n';
+
+    delete root;
+
+    GameDatabase &db2 = GameDatabase::getDatabase();
+    int retVal = db2.loadGameFromIndex(root, last, 0, re);
+
+
+    if(retVal == 0)
+    {
+        for(int x = 0; x < C4_HEIGHT; ++x)
+        {
+            for(int y = 0; y < C4_WIDTH; ++y)
+            {
+                cout << last->getCurrentGrid()->squares[y][x] << ' ';
+            }
+            cout << '\n';
+        }
+        cout << endl;
+    }
+    else
+    {
+        cerr << "Invalid game index\n";
     }
 
-    cout << Elements::EMPTY << " " << Elements::TYPE1 << " " << endl;
 
-    Elements::GenericPieceType piece = Elements::EMPTY;
-    Elements::PlayerType player = Elements::PLAYER_1;
-    piece = (Elements::GenericPieceType)player;
+    db.setDBFile("c4test.db");
+    db.storeDBToFile();
 
-    cout << piece << " " << player << endl;
+    retVal = db.generateDBFromFile();
 
-//    trainXOR();
+    cout << db.size() << '\n';
 
-    MoveTableBuilder builder;
-
- /*   Grid *first = new TicTacToeGrid();
-  first->squares[0][0] = Elements::TYPE2;
-    first->squares[1][0] = Elements::TYPE2;
-    first->squares[2][0] = Elements::TYPE1;
-
-    first->squares[0][1] = Elements::TYPE2;
-    first->squares[1][1] = Elements::EMPTY;
-    first->squares[2][1] = Elements::EMPTY;
-
-    first->squares[0][2] = Elements::TYPE1;
-    first->squares[1][2] = Elements::TYPE1;
-    first->squares[2][2] = Elements::EMPTY;
- /*   //Build complete tree.
-    //BoardState *tree = new BoardState(first, NULL, Elements::PLAYER_1, re, 12);
-    //builder.createMoveTableFile(tree, "/Users/samuel/Documents/test.mt", re);
-
-    map<string, string> hashMap;
-
-    Elements::PlayerType currentPlayer = Elements::PLAYER_1;
-
-    builder.generateHashTable("/Users/samuel/Documents/test.mt", hashMap);
-
-    while(re->testBoard(first) == Elements::NORMAL)
+    for(int x = 0; x < db.size(); ++x)
     {
-       // int x[1] = { 100 };
-        sleep(1);
+        cout << db.loadStringFromIndex(x) << '\n';
+    }
 
-        string test = first->toString();
-        string result = hashMap[test];
-        int index = atoi(result.c_str());
-
-        if(currentPlayer == Elements::PLAYER_1)
+    if(retVal != 0)
+    {
+        switch(retVal)
         {
-            first->squares[index / 3][index % 3] = Elements::TYPE1;
-            currentPlayer = Elements::PLAYER_2;
+        case ERROR_FILE_EMPTY:
+            cerr << "File empty\n";
+        default:
+            cerr << "Unknown error occurred\n";
         }
-        else
-        {
-            first->squares[index / 3][index % 3] = Elements::TYPE2;
-            currentPlayer = Elements::PLAYER_1;
-        }
-
-        cout << test << ": " << index << endl;
-
-        //cout << *first << "\n";
-    }*/
-
+    }
 #endif
 }
+
 
 void tryWriteFiles(string filename)
 {

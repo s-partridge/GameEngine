@@ -81,5 +81,7 @@ TDNeuralNetPlayer *C4NNBuilder::loadNeuralNet(Elements::PlayerType player, Rules
 
     newNetwork->setActivationFunction(activation, 2);
 
+    newNetwork->setMomentum(C4_MOMENTUM);
+    newNetwork->setLearnRate(C4_LEARN_RATE);
     return newNetwork;
 }

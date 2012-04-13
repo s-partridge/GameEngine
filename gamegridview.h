@@ -37,7 +37,7 @@ private slots:
 private:
     GridSquare ***m_squares;
     QGridLayout *m_centralLayout;
-    int m_height, m_width;
+    int m_width, m_height;
 };
 
 #endif // GAMEGRIDVIEW_H

@@ -17,8 +17,8 @@ BoardState::BoardState(Grid *currentGrid, BoardState *parent, Elements::PlayerTy
     m_numNextStates = 0;
     m_P1StateWorth = 0;
     m_P2StateWorth = 0;
-
-    m_moveWorth = rulesEngine->worthOfState(currentGrid, m_currentPlayer, rulesEngine->testBoard(currentGrid));
+    m_lastSquare = 0;
+//    m_moveWorth = rulesEngine->worthOfState(currentGrid, m_currentPlayer, rulesEngine->testBoard(currentGrid));
 }
 
 //Generates a board state and child nodes for numLayersToBuild iterations.
@@ -32,10 +32,11 @@ BoardState::BoardState(Grid *currentGrid, BoardState *parent, Elements::PlayerTy
     m_nextStates = NULL;
     m_P1StateWorth = 0;
     m_P2StateWorth = 0;
+    m_lastSquare = 0;
 
     genNextStates(numLayersToBuild - 1, rulesEngine);
 
-    m_moveWorth = rulesEngine->worthOfState(currentGrid, m_currentPlayer, rulesEngine->testBoard(currentGrid));
+//    m_moveWorth = rulesEngine->worthOfState(currentGrid, m_currentPlayer, rulesEngine->testBoard(currentGrid));
 }
 
 void BoardState::purge()
@@ -61,6 +62,39 @@ void BoardState::purge()
     m_nextBestMove = NULL;
 }
 
+void BoardState::addNextState(Grid *nextGrid, int lastMove, const RulesEngine *rulesEngine)
+{
+    //Create array if none exists.
+    if(m_nextStates == NULL)
+        m_nextStates = new BoardState*[1];
+
+    //Increase array size.
+    else if(m_nextStates != NULL)
+    {
+        BoardState **temp = m_nextStates;
+
+        m_nextStates = new BoardState*[m_numNextStates + 1];
+
+        for(int x = 0; x < m_numNextStates; ++x)
+        {
+            m_nextStates[x] = temp[x];
+        }
+        delete temp;
+    }
+
+    m_numNextStates++;
+
+    Elements::PlayerType next;
+
+    if(m_currentPlayer == Elements::PLAYER_1)
+        next = Elements::PLAYER_2;
+    else
+        next = Elements::PLAYER_1;
+
+    m_nextStates[m_numNextStates - 1] = new BoardState(nextGrid, this, next, rulesEngine);
+    m_nextStates[m_numNextStates - 1]->setLastMove(lastMove);
+}
+
 void BoardState::genNextStates(int numLayers, const RulesEngine *rulesEngine)
 {
 #ifdef DEBUG_BOARDSTATE
@@ -71,10 +105,24 @@ void BoardState::genNextStates(int numLayers, const RulesEngine *rulesEngine)
     if(rulesEngine->testBoard(m_currentGrid) != Elements::NORMAL)
         return;
 
+    //If states have already been generated, don't do it again. That's pointless.
+    //instead, pass this call on to child states.
+    if(m_nextStates != NULL)
+    {
+        for(int x = 0; x < m_numNextStates; ++x)
+        {
+            m_nextStates[x]->genNextStates(numLayers - 1, rulesEngine);
+        }
+
+        return;
+    }
     //Create a temporary array to contain the grids.
     Grid **nextGrids = NULL;
+
+    int *lastMoves = NULL;
+
     //genNextMoves will set the value of m_numNextStates and nextGrids.
-    rulesEngine->genNextMoves(m_currentGrid, nextGrids, m_currentPlayer, m_numNextStates);
+    rulesEngine->genNextMoves(m_currentGrid, nextGrids, lastMoves, m_currentPlayer, m_numNextStates);
 
     deleteNextStates();
 
@@ -96,13 +144,21 @@ void BoardState::genNextStates(int numLayers, const RulesEngine *rulesEngine)
 
         else
             m_nextStates[x] = new BoardState(nextGrids[x], this, nextPlayer, rulesEngine);
+
+        //Set the most recently used square.
+        m_nextStates[x]->setLastMove(lastMoves[x]);
     }
 
     //The grids for m_nextStates are passed by reference, but there is still an unhandled
     //reference to the array itself that must be accounted for.
     delete nextGrids;
 
-    setNextBestMove();
+    delete [] lastMoves;
+
+    //DEPRECATED: Unneeded function.  NextBestMove only works if an evaluation function is
+    //run when the state is created.  There is no evaluation function in this program other
+    //than neuralNetPlayer's neural network outputs.
+//    setNextBestMove();
 }
 
 void BoardState::setNextBestMove()
@@ -322,7 +378,43 @@ void BoardState::deleteNextStates()
 
         delete [] m_nextStates;
         m_nextStates = NULL;
+
+        m_numNextStates = 0;
     }
+}
+
+void BoardState::toString(string &str) const
+{
+    //If the state has a parent -- that is, it is not the starting state,
+    //call this function in its parent and append the last move made to the string.
+    if(m_parent != NULL)
+    {
+        m_parent->toString(str);
+        str += (char)(m_lastSquare + MOVE_OFFSET);
+    }
+}
+
+BoardState *BoardState::fromString(const string &str, int strIdx, const RulesEngine *re)
+{
+    //Create a grid for the next state.
+    Grid *next = re->createGameSpecificGrid();
+
+    //Copy the current grid into it.
+    *next = *m_currentGrid;
+
+    double move[1];
+    move[0] = (int)(str[strIdx] - MOVE_OFFSET);
+
+    re->updateGrid(next, (double *)move, m_currentPlayer);
+
+    addNextState(next, (str[strIdx] - MOVE_OFFSET), re);
+    strIdx++;
+
+    //Only continue if there are more states.
+    if(strIdx < str.length())
+        return m_nextStates[0]->fromString(str, strIdx, re);
+    else
+        return m_nextStates[0];
 }
 
 void BoardState::printMemoryAddresses(int indentation) const

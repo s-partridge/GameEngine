@@ -192,6 +192,7 @@ AITrainingStats TicTacToeTrainer::trainVersusSelf(NeuralNetPlayer *player) const
 
         numRounds = 0;
 
+        root->deleteNextStates();
         current = root;
 #ifdef DEBUG_TDNEURALNET
         printLine2("Game #", x);
@@ -201,7 +202,7 @@ AITrainingStats TicTacToeTrainer::trainVersusSelf(NeuralNetPlayer *player) const
             ++numRounds;
             //Generate the grids for the next move.
 
-            current->genNextStates(1, m_rulesEngine);
+            current->genNextStates(DFS_TREE_DEPTH, m_rulesEngine);
 
             //Switch between looking for best move for p1 and best move for p2.
             if(numRounds % 2)
@@ -282,6 +283,7 @@ AITrainingStats TicTacToeTrainer::trainTwoNetworks(NeuralNetPlayer *player1, Neu
 
         numRounds = 0;
 
+        root->deleteNextStates();
         current = root;
 #ifdef DEBUG_TDNEURALNET
         printLine2("Game #", x);
@@ -292,7 +294,7 @@ AITrainingStats TicTacToeTrainer::trainTwoNetworks(NeuralNetPlayer *player1, Neu
 
             //Generate the grids for the next move.
 
-            current->genNextStates(1, m_rulesEngine);
+            current->genNextStates(DFS_TREE_DEPTH, m_rulesEngine);
 
             //Choose a move.
             currentNNPlayer->makeMove(current, userOutput);
@@ -379,7 +381,6 @@ AITrainingStats TicTacToeTrainer::trainTwoNetworks(NeuralNetPlayer *player1, Neu
 
 }
 
-
 AITrainingStats TicTacToeTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *player) const
 {
     AITrainingStats trainingStats, totalStats;
@@ -405,6 +406,7 @@ AITrainingStats TicTacToeTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *pla
     {
         currentPlayer = Elements::PLAYER_1;
 
+        root->deleteNextStates();
         current = root;
 #ifdef DEBUG_TDNEURALNET
         printLine2("Game #", x);
@@ -426,7 +428,7 @@ AITrainingStats TicTacToeTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *pla
             {
                 //Train the network by always choosing the first move in the list.
                 //Not very good for learning, but it should give a good test.
-                current->genNextStates(1, m_rulesEngine);
+                current->genNextStates(DFS_TREE_DEPTH, m_rulesEngine);
 
                 //Randomly select a move.  Terrible play, maybe.  But it will expose the neural network to
                 //a wider variety of moves that a "skilled" player.
@@ -458,7 +460,7 @@ AITrainingStats TicTacToeTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *pla
 
                 if(endState == Elements::P1WIN)
                     ++trainingStats.wins;
-                else if(endState = Elements::DRAW)
+                else if(endState == Elements::DRAW)
                     ++trainingStats.draws;
                 else
                     ++trainingStats.losses;
@@ -525,7 +527,10 @@ AITrainingStats TicTacToeTrainer::trainOnBestTrackPlus(NeuralNetPlayer *player) 
 
         while(m_rulesEngine->testBoard(gameBoard) == Elements::NORMAL)
         {
-            m_rulesEngine->genNextMoves(gameBoard, next, currentPlayer, numNextStates);
+            int *lastMoves = NULL;
+            m_rulesEngine->genNextMoves(gameBoard, next, lastMoves, currentPlayer, numNextStates);
+
+            delete [] lastMoves;
 
             //Train on the current state.  Otherwise, the blank board will never be learned.
             //This will also mean that the network imprints the best move track twice.

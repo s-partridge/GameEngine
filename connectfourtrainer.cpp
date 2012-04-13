@@ -3,13 +3,13 @@
 AITrainingStats ConnectFourTrainer::trainNetwork(NeuralNetPlayer *player) const
 {
 #ifdef DEBUG_TRAINER
-    printLine("Training against terrible player");
+    //printLine("Training against terrible player");
 #endif
-    trainVersusTerriblePlayer(player);
+    //trainVersusTerriblePlayer(player);
 #ifdef DEBUG_TRAINER
     printLine("Training against blocking player");
 #endif
-    return trainVersusSelf(player);
+    return trainVersusMultiple(player);
 }
 
 bool updateBoardState(BoardState *&current, const Grid *next)
@@ -24,10 +24,16 @@ bool updateBoardState(BoardState *&current, const Grid *next)
     return true;
 }
 
-BoardState *ConnectFourTrainer::moveBlocker(BoardState *&currentState, Elements::PlayerType friendly, Elements::PlayerType opponent) const
+BoardState *ConnectFourTrainer::moveVertical(BoardState *&currentState, Elements::PlayerType friendly, Elements::PlayerType opponent)
 {
+    currentState = currentState->getStateWithIndex(0);
+    return currentState;
+}
 
-    Grid *currentGrid = m_rulesEngine->createGameSpecificGrid();
+BoardState *ConnectFourTrainer::moveBlocker(BoardState *&currentState, Elements::PlayerType friendly, Elements::PlayerType opponent)
+{
+    ConnectFourRulesEngine re;
+    Grid *currentGrid = re.createGameSpecificGrid();
     *currentGrid = *(currentState->getCurrentGrid());
 
     //Check for vertical three-in-a-row
@@ -203,12 +209,15 @@ BoardState *ConnectFourTrainer::moveBlocker(BoardState *&currentState, Elements:
     return currentState;
 }
 
-AITrainingStats ConnectFourTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *player) const
+AITrainingStats ConnectFourTrainer::trainVersusMultiple(NeuralNetPlayer *player) const
 {
     AITrainingStats trainingStats, totalStats;
     trainingStats.init();
 
     Elements::PlayerType currentPlayer;
+
+    //Array of function pointers.
+    BoardState *(*trainerFunction)(BoardState *&, Elements::PlayerType, Elements::PlayerType);
 
     //Train on move tree.
     Grid *userOutput = m_rulesEngine->createGameSpecificGrid();
@@ -220,12 +229,18 @@ AITrainingStats ConnectFourTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *p
 
     int numRounds;
 
-    for(int x = 0; x < m_numTrainingIterations / 10; ++x)
+    for(int x = 0; x < m_numTrainingIterations; ++x)
     {
         currentPlayer = Elements::PLAYER_1;
 
         numRounds = 0;
 
+        if(x % 3 != 0)
+            trainerFunction = moveVertical;
+        else
+            trainerFunction = moveBlocker;
+
+        root->deleteNextStates();
         current = root;
 #ifdef DEBUG_TDNEURALNET
         printLine2("Game #", x);
@@ -235,7 +250,7 @@ AITrainingStats ConnectFourTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *p
             ++numRounds;
             //Generate the grids for the next move.
 
-            current->genNextStates(1, m_rulesEngine);
+            current->genNextStates(DFS_TREE_DEPTH, m_rulesEngine);
 
             //root->printMemoryAddresses(0);
 
@@ -259,8 +274,132 @@ AITrainingStats ConnectFourTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *p
                 //Not very good for learning, but it should give a good test.
                 current->genNextStates(1, m_rulesEngine);
 
-                //Randomly select a move.  Terrible play, maybe.  But it will expose the neural network to
-                //a wider variety of moves that a "skilled" player.
+                //Always take the leftmost possible column.
+                current = trainerFunction(current, Elements::PLAYER_2, Elements::PLAYER_1);
+                //Attempt to block every move the neural net makes.
+
+                //TODO: MoveBlocker doesn't exist yet.
+                //moveBlocker(current, Elements::PLAYER_2, currentPlayer);
+
+                //See if the computer made the last move.
+                Elements::GameState endState = m_rulesEngine->testBoard(current->getCurrentGrid());
+                if(endState != Elements::NORMAL)
+                {
+                    player->endStateReached(current, endState, false);
+
+                    if(endState == Elements::P1WIN)
+                        ++trainingStats.wins;
+                    else if(endState == Elements::DRAW)
+                        ++trainingStats.draws;
+                    else
+                        ++trainingStats.losses;
+                    break;
+                }
+            }
+            else
+            {
+                Elements::GameState endState = m_rulesEngine->testBoard(current->getCurrentGrid());
+                player->endStateReached(current, endState, true);
+
+                if(endState == Elements::P1WIN)
+                    ++trainingStats.wins;
+                else if(endState == Elements::DRAW)
+                    ++trainingStats.draws;
+                else
+                    ++trainingStats.losses;
+
+                break;
+            }
+
+        }
+#ifdef DEBUG_TRAINER
+        if(x % m_printoutInterval == m_printoutInterval - 1)
+        {
+            print2(x + 1, " games completed.\t");
+            print4("Neural network won ", trainingStats.wins, " games, tied ", trainingStats.draws);
+            printLine2(" and lost ", trainingStats.losses);
+
+            totalStats += trainingStats;
+            //Reset stats after training iteration.
+            trainingStats.init();
+
+            //Print last game result
+            for(int y = 0; y < C4_HEIGHT; ++y)
+            {
+                for(int x = 0; x < C4_WIDTH; ++x)
+                {
+                    cout << current->getCurrentGrid()->squares[x][y] << ' ';
+                }
+                cout << endl;
+            }
+            cout << endl;
+        }
+#endif
+    }
+
+    delete root;
+
+    return totalStats;
+}
+
+AITrainingStats ConnectFourTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *player) const
+{
+    AITrainingStats trainingStats, totalStats;
+    trainingStats.init();
+
+    Elements::PlayerType currentPlayer;
+
+    //Train on move tree.
+    Grid *userOutput = m_rulesEngine->createGameSpecificGrid();
+
+    Grid *startingGrid = m_rulesEngine->createGameSpecificGrid();
+
+    BoardState *root = new BoardState(startingGrid, NULL, Elements::PLAYER_1, m_rulesEngine);
+    BoardState *current;
+
+    int numRounds;
+
+    for(int x = 0; x < m_numTrainingIterations; ++x)
+    {
+        currentPlayer = Elements::PLAYER_1;
+
+        numRounds = 0;
+
+        root->deleteNextStates();
+        current = root;
+#ifdef DEBUG_TDNEURALNET
+        printLine2("Game #", x);
+#endif
+        while(true/*keep going until the loop breaks internally*/)
+        {
+            ++numRounds;
+            //Generate the grids for the next move.
+
+            current->genNextStates(DFS_TREE_DEPTH, m_rulesEngine);
+
+            //root->printMemoryAddresses(0);
+
+            //Switch between looking for best move for p1 and best move for p2.
+            if(numRounds % 2)
+                player->setCalcAsMax(false);
+            else
+                player->setCalcAsMax(true);
+
+            //Choose a move.
+            player->makeMove(current, userOutput);
+
+            //previous = current;
+
+            //Move down the tree.
+            current = current->getState(userOutput);
+
+            if(m_rulesEngine->testBoard(current->getCurrentGrid()) == Elements::NORMAL)
+            {
+                //Train the network by always choosing the first move in the list.
+                //Not very good for learning, but it should give a good test.
+                current->genNextStates(1, m_rulesEngine);
+
+                //Always take the leftmost possible column.
                 current = current->getStateWithIndex(0);
                 //Attempt to block every move the neural net makes.
 
@@ -289,7 +428,7 @@ AITrainingStats ConnectFourTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *p
 
                 if(endState == Elements::P1WIN)
                     ++trainingStats.wins;
-                else if(endState = Elements::DRAW)
+                else if(endState == Elements::DRAW)
                     ++trainingStats.draws;
                 else
                     ++trainingStats.losses;
@@ -299,7 +438,7 @@ AITrainingStats ConnectFourTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *p
 
         }
 #ifdef DEBUG_TRAINER
-        if(x % 500 == 499)
+        if(x % m_printoutInterval == m_printoutInterval - 1)
         {
             print2(x + 1, " games completed.\t");
             print4("Neural network won ", trainingStats.wins, " games, tied ", trainingStats.draws);
@@ -308,6 +447,17 @@ AITrainingStats ConnectFourTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *p
             totalStats += trainingStats;
             //Reset stats after training iteration.
             trainingStats.init();
+
+            //Print last game result
+            for(int y = 0; y < C4_HEIGHT; ++y)
+            {
+                for(int x = 0; x < C4_WIDTH; ++x)
+                {
+                    cout << current->getCurrentGrid()->squares[x][y] << ' ';
+                }
+                cout << endl;
+            }
+            cout << endl;
         }
 #endif
     }
@@ -315,7 +465,6 @@ AITrainingStats ConnectFourTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *p
     delete root;
 
     return totalStats;
-
 }
 
 AITrainingStats ConnectFourTrainer::trainVersusMoveBlocker(NeuralNetPlayer *player) const
@@ -341,6 +490,7 @@ AITrainingStats ConnectFourTrainer::trainVersusMoveBlocker(NeuralNetPlayer *play
 
         numRounds = 0;
 
+        root->deleteNextStates();
         current = root;
 #ifdef DEBUG_TDNEURALNET
         printLine2("Game #", x);
@@ -350,7 +500,7 @@ AITrainingStats ConnectFourTrainer::trainVersusMoveBlocker(NeuralNetPlayer *play
             ++numRounds;
             //Generate the grids for the next move.
 
-            current->genNextStates(1, m_rulesEngine);
+            current->genNextStates(DFS_TREE_DEPTH, m_rulesEngine);
 
             //root->printMemoryAddresses(0);
 
@@ -404,7 +554,7 @@ AITrainingStats ConnectFourTrainer::trainVersusMoveBlocker(NeuralNetPlayer *play
 
                 if(endState == Elements::P1WIN)
                     ++trainingStats.wins;
-                else if(endState = Elements::DRAW)
+                else if(endState == Elements::DRAW)
                     ++trainingStats.draws;
                 else
                     ++trainingStats.losses;
@@ -414,7 +564,7 @@ AITrainingStats ConnectFourTrainer::trainVersusMoveBlocker(NeuralNetPlayer *play
 
         }
 #ifdef DEBUG_TRAINER
-        if(x % 500 == 499)
+        if(x % m_printoutInterval == m_printoutInterval - 1)
         {
             print2(x + 1, " games completed.\t");
             print4("Neural network won ", trainingStats.wins, " games, tied ", trainingStats.draws);
@@ -456,6 +606,7 @@ AITrainingStats ConnectFourTrainer::trainVersusSelf(NeuralNetPlayer *player) con
 
         numRounds = 0;
 
+        root->deleteNextStates();
         current = root;
 #ifdef DEBUG_TDNEURALNET
         printLine2("Game #", x);
@@ -465,7 +616,7 @@ AITrainingStats ConnectFourTrainer::trainVersusSelf(NeuralNetPlayer *player) con
             ++numRounds;
             //Generate the grids for the next move.
 
-            current->genNextStates(1, m_rulesEngine);
+            current->genNextStates(DFS_TREE_DEPTH, m_rulesEngine);
 
             //root->printMemoryAddresses(0);
 
@@ -500,7 +651,7 @@ AITrainingStats ConnectFourTrainer::trainVersusSelf(NeuralNetPlayer *player) con
             }
         }
 #ifdef DEBUG_TRAINER
-        if(x % 500 == 499)
+        if(x % m_printoutInterval == m_printoutInterval - 1)
         {
             print2(x + 1, " games completed.\t");
             print4("Neural network won ", trainingStats.wins, " games, tied ", trainingStats.draws);
@@ -546,6 +697,7 @@ AITrainingStats ConnectFourTrainer::trainTwoNetworks(NeuralNetPlayer *player1, N
 
         numRounds = 0;
 
+        root->deleteNextStates();
         current = root;
 #ifdef DEBUG_TDNEURALNET
         printLine2("Game #", x);
@@ -556,7 +708,7 @@ AITrainingStats ConnectFourTrainer::trainTwoNetworks(NeuralNetPlayer *player1, N
 
             //Generate the grids for the next move.
 
-            current->genNextStates(1, m_rulesEngine);
+            current->genNextStates(DFS_TREE_DEPTH, m_rulesEngine);
 
             //Choose a move.
             currentNNPlayer->makeMove(current, userOutput);

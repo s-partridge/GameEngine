@@ -20,7 +20,7 @@ public:
     float worthOfState(const Grid *boardState, Elements::PlayerType currentPlayer, Elements::GameState currentState) const { return -1.0; }
 
     //Generate grids for possible moves from the current state.
-    void genNextMoves(const Grid *current, Grid **&nextMoves, Elements::PlayerType currentPlayer, int &numNextStates) const;
+    void genNextMoves(const Grid *current, Grid **&nextMoves, int *&lastMoves, Elements::PlayerType currentPlayer, int &numNextStates) const;
 
     //Converts a grid object into an array of doubles, given a large enough array.
     //Return value is true or false, depending on whether or not the copy was successful.

@@ -53,7 +53,8 @@ SOURCES += main.cpp\
     connectfourgameenginebuilder.cpp \
     connectfourtrainer.cpp \
     tdneuralnetplayer.cpp \
-    managedarray.cpp
+    managedarray.cpp \
+    gamedatabase.cpp
 
 HEADERS  += mainwindow.h \
     gamecontroller.h \
@@ -103,7 +104,10 @@ HEADERS  += mainwindow.h \
     connectfourtrainer.h \
     tdneuralnetplayer.h \
     managedarray.h \
-    tdconstants.h
+    tdconstants.h \
+    gamedatabase.h
+
+
 
 
 

@@ -20,7 +20,7 @@ public:
     virtual float worthOfState(const Grid *boardState, Elements::PlayerType currentPlayer, Elements::GameState currentState) const = 0;
 
     //Generate grids for moves from the current state.
-    virtual void genNextMoves(const Grid *current, Grid **&nextMoves, Elements::PlayerType currentPlayer, int &numNextStates) const = 0;
+    virtual void genNextMoves(const Grid *current, Grid **&nextMoves, int *&lastMoves, Elements::PlayerType currentPlayer, int &numNextStates) const = 0;
     /*
     Convert a given grid to an array of doubles.
       grid is the Grid to copy from.

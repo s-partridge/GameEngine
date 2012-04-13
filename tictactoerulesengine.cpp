@@ -16,7 +16,7 @@ bool TicTacToeRulesEngine::isValidMove(const Grid *currentState, const Grid *nex
     return true;
 }
 
-void TicTacToeRulesEngine::genNextMoves(const Grid *current, Grid **&nextMoves, Elements::PlayerType currentPlayer, int &numNextStates) const
+void TicTacToeRulesEngine::genNextMoves(const Grid *current, Grid **&nextMoves, int *&lastMoves, Elements::PlayerType currentPlayer, int &numNextStates) const
 {
     numNextStates = current->numPiecesOfType(Elements::EMPTY);
 
@@ -31,6 +31,7 @@ void TicTacToeRulesEngine::genNextMoves(const Grid *current, Grid **&nextMoves, 
 #endif
 
     nextMoves = new Grid*[numNextStates];
+    lastMoves = new int[numNextStates];
 
     for(int x = 0; x < numNextStates; ++x)
     {
@@ -40,6 +41,7 @@ void TicTacToeRulesEngine::genNextMoves(const Grid *current, Grid **&nextMoves, 
     }
 
     int stateCount = 0;
+    int moveIndex = 0;
 
     for(int x = 0; x < 3; ++x)
     {
@@ -55,8 +57,13 @@ void TicTacToeRulesEngine::genNextMoves(const Grid *current, Grid **&nextMoves, 
             {
                 nextMoves[stateCount]->squares[x][y] = (Elements::GenericPieceType)currentPlayer;
 
+                //Store the index of the most recently used square.
+                lastMoves[stateCount] = moveIndex;
                 ++stateCount;
             }
+
+            //A simple counter to keep track of the current square.
+            ++moveIndex;
         }
     }
 

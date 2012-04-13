@@ -3,6 +3,10 @@
 
 #define e                   2.71828183
 
+//Used to offset values for moves when converting to and from a string.
+//Specifically used with toString() and fromString() in BoardState
+#define MOVE_OFFSET '0'
+
 //Used for tic tac toe and connect four, these values are for conversions
 //between enumerated data and double precision inputs for a neural net.
 #define EMPTY_SQUARE        0.5

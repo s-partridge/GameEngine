@@ -39,7 +39,7 @@ public:
 class Linear : public ActivationFunctor
 {
     //y = stretch * x + shift
-    double vShiftFactor, vStretchFactor;
+    double vStretchFactor, vShiftFactor;
 
 public:
     Linear() : vStretchFactor(1), vShiftFactor(0) {}

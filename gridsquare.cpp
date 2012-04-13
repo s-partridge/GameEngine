@@ -1,7 +1,7 @@
 #include "gridsquare.h"
 
 GridSquare::GridSquare(int xCoord, int yCoord, QWidget *parent) :
-    m_xCoord(xCoord), m_yCoord(yCoord), QPushButton(parent)
+    QPushButton(parent), m_xCoord(xCoord), m_yCoord(yCoord)
 {
     setMinimumSize(100, 100);
     setMaximumSize(100, 100);

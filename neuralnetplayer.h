@@ -57,9 +57,9 @@ public:
     void setMomentum(double rate);
 
 protected:
-    RulesEngine *m_rulesEngine;
     NeuralNetwork *m_neuralNetwork;
     Elements::PlayerType m_player;
+    RulesEngine *m_rulesEngine;
 };
 
 #endif // NEURALNETPLAYER_H

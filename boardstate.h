@@ -9,7 +9,6 @@ using namespace std;
 #include "grid.h"
 #include "rulesengine.h"
 
-
 class BoardState
 {
 public:
@@ -22,11 +21,20 @@ public:
 
     ~BoardState() { purge(); }
 
+    //Add a state from a pre-generated grid.
+    void addNextState(Grid *nextGrid, int lastMove, const RulesEngine *rulesEngine);
     //Generate child nodes from this state.
     void genNextStates(int numLayers, const RulesEngine *rulesEngine);
 
     //Set next best move based on the moveWorth of each state in nextStates.
     void setNextBestMove();
+    void setLastMove(int lastMove) { m_lastSquare = lastMove; }
+
+    //Recursively create a string containing the moves leading up to this state.
+    void toString(string &str) const;
+    //Generate child states from an input string.
+    //Returns a pointer to the last child created.
+    BoardState *fromString(const string &str, int strIdx, const RulesEngine *re);
 
     //Get the current player.
     Elements::PlayerType getCurrentPlayer() { return m_currentPlayer; }
@@ -72,10 +80,10 @@ private:
     Elements::PlayerType m_currentPlayer;
     double m_moveWorth;
 
+    int m_lastSquare;
 
 
 protected:
-    int m_lastSquare;
     int m_P1StateWorth;
     int m_P2StateWorth;
 };

@@ -481,7 +481,7 @@ bool testC4MoveBlocker()
     bool didPass = true;
 
     ConnectFourRulesEngine *re = new ConnectFourRulesEngine();
-    ConnectFourTrainer trainer(10, re);
+    //ConnectFourTrainer trainer(10, re);
 
     //Test grid creation.
     Grid **states;
@@ -501,7 +501,7 @@ bool testC4MoveBlocker()
     {
         cout << "Testing pattern " << x + 1 << endl;
 
-        resultStates[x] = trainer.moveBlocker(boardStates[x], Elements::PLAYER_2, Elements::PLAYER_1);
+        resultStates[x] = ConnectFourTrainer::moveBlocker(boardStates[x], Elements::PLAYER_2, Elements::PLAYER_1);
 
         if(*(resultStates[x]->getCurrentGrid()) != *(expected[x]))
         {
