@@ -1,11 +1,11 @@
 #include "tictactoetrainer.h"
 
 
-AITrainingStats TicTacToeTrainer::trainNetwork(NeuralNetPlayer *player) const
+AITrainingStats TicTacToeTrainer::trainNetwork(NeuralNetPlayer *player, GameDatabase *database)
 {
     //return trainOnBestTrackPlus(player);
     //return trainOnBestStatesOnly(player);
-    return trainVersusTerriblePlayer(player);
+    return trainVersusTerriblePlayer(player, database);
     //return trainVersusSelf(player);
 }
 
@@ -169,8 +169,11 @@ void TicTacToeTrainer::moveBlocker(BoardState *&currentState, Elements:: PlayerT
     delete nextGrid;
 }
 
-AITrainingStats TicTacToeTrainer::trainVersusSelf(NeuralNetPlayer *player) const
+AITrainingStats TicTacToeTrainer::trainVersusSelf(NeuralNetPlayer *player, GameDatabase *database) const
 {
+    //Load the correct file into the database.
+    database->setDBFile(FILENAME_SELF);
+
     AITrainingStats trainingStats, totalStats;
     trainingStats.init();
 
@@ -246,8 +249,8 @@ AITrainingStats TicTacToeTrainer::trainVersusSelf(NeuralNetPlayer *player) const
             trainingStats.init();
         }
 #endif
-
-        //player->reset();
+        //Store game in database
+        database->storeGame(current);
     }
 
     delete root;
@@ -256,8 +259,11 @@ AITrainingStats TicTacToeTrainer::trainVersusSelf(NeuralNetPlayer *player) const
 
 }
 
-AITrainingStats TicTacToeTrainer::trainTwoNetworks(NeuralNetPlayer *player1, NeuralNetPlayer *player2) const
+AITrainingStats TicTacToeTrainer::trainTwoNetworks(NeuralNetPlayer *player1, NeuralNetPlayer *player2, GameDatabase *database)
 {
+    //Load the correct file into the database.
+    database->setDBFile(FILENAME_VERSUS);
+
     AITrainingStats trainingStats1, totalStats1;
     AITrainingStats trainingStats2, totalStats2, totalStats;
     trainingStats1.init();
@@ -367,6 +373,9 @@ AITrainingStats TicTacToeTrainer::trainTwoNetworks(NeuralNetPlayer *player1, Neu
             trainingStats2.init();
         }
 #endif
+
+        //Store game in database
+        database->storeGame(current);
     }
     delete root;
     delete userOutput;
@@ -381,8 +390,11 @@ AITrainingStats TicTacToeTrainer::trainTwoNetworks(NeuralNetPlayer *player1, Neu
 
 }
 
-AITrainingStats TicTacToeTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *player) const
+AITrainingStats TicTacToeTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *player, GameDatabase *database) const
 {
+    //Load the correct file into the database.
+    database->setDBFile(FILENAME_TERRIBLE);
+
     AITrainingStats trainingStats, totalStats;
     trainingStats.init();
 
@@ -484,6 +496,9 @@ AITrainingStats TicTacToeTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *pla
             trainingStats.init();
         }
 #endif
+
+        //store game in database
+        database->storeGame(current);
     }
 
     delete root;

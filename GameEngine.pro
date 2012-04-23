@@ -105,7 +105,9 @@ HEADERS  += mainwindow.h \
     tdneuralnetplayer.h \
     managedarray.h \
     tdconstants.h \
-    gamedatabase.h
+    gamedatabase.h \
+    databaseConstants.h
+
 
 
 

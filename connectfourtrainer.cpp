@@ -1,15 +1,38 @@
 #include "connectfourtrainer.h"
 
-AITrainingStats ConnectFourTrainer::trainNetwork(NeuralNetPlayer *player) const
+#define DBTRAIN
+
+AITrainingStats ConnectFourTrainer::trainNetwork(NeuralNetPlayer *player, GameDatabase *database)
 {
+    database->setPrintLogs(false);
+#ifndef DBTRAIN
 #ifdef DEBUG_TRAINER
-    //printLine("Training against terrible player");
+    printLine("Training against self");
 #endif
-    //trainVersusTerriblePlayer(player);
+    //trainVersusSelf(player, database);
+#ifdef DEBUG_TRAINER
+    printLine("Training against terrible player");
+#endif
+    trainVersusTerriblePlayer(player, database);
 #ifdef DEBUG_TRAINER
     printLine("Training against blocking player");
 #endif
-    return trainVersusMultiple(player);
+   // trainVersusMoveBlocker(player, database);
+#ifdef DEBUG_TRAINER
+    printLine("Training against multiple players");
+#endif
+    //trainVersusMultiple(player, database);
+#else
+    printGameStrings = true;
+    for(int x = 0; x < 5; ++x)
+    {
+        cout << "train from database. " << 5 - x << " more iteration(s)." << endl;
+        trainFromDatabase(player, database);
+    }
+    printGameStrings = false;
+#endif
+    database->setPrintLogs(true);
+
 }
 
 bool updateBoardState(BoardState *&current, const Grid *next)
@@ -24,6 +47,113 @@ bool updateBoardState(BoardState *&current, const Grid *next)
     return true;
 }
 
+AITrainingStats ConnectFourTrainer::trainFromDatabaseWithFile(NeuralNetPlayer *player, GameDatabase *database, string filename) const
+{
+    AITrainingStats stats;
+    BoardState *root = NULL;
+    BoardState *current = NULL;
+    //Load database for training.
+    database->setDBFile(filename);
+    //Start with the data file already loaded.
+    int size = database->size();
+    int gameLength;
+
+    cout << "\n\t\t" << size << " games in database\n";
+
+    for(int x = 0; x < size; ++x)
+    {
+        //Print out status a set number of times.
+        //Print out number
+        if(x == size >> 2 || x == size >> 1 || x == ((size >> 2) + (size >> 1)))
+            cout << "\r\t\t" << size - x << " games remaining...";
+        //Pick a random game from the database.
+       // int index = rand() % size;
+        //Pull a game from the database.
+        database->loadGameFromIndex(root, current, gameLength, x, m_rulesEngine);
+        //Get the end state of the game.
+        Elements::GameState endState = m_rulesEngine->testBoard(current->getCurrentGrid());
+        //Train the player.
+        //False is used because youMovedLast only matters when the game length is not defined.
+        player->endStateReached(current, endState, false, gameLength);
+
+    }
+    cout << endl;
+
+    return stats;
+}
+
+AITrainingStats ConnectFourTrainer::trainFromDatabase(NeuralNetPlayer *player, GameDatabase *database)
+{
+    cout << "Train from databases" << endl;
+
+    AITrainingStats stats;
+
+    int numIterations = m_numTrainingIterations;
+
+    //Evaluate the neural network before and after training.
+    m_numTrainingIterations = 21;
+
+    //Turn off training for the player.
+    player->setTrain(false);
+
+    //Test the network 10 times on each type of opponent.
+    //stats += trainVersusSelf(player, database);   //No point in testing against itself.
+    //stats += trainVersusTerriblePlayer(player, database);
+    //stats += trainVersusMoveBlocker(player, database);
+    stats += trainVersusMultiple(player, database);
+
+    //Print results.
+    cout << "\t" << stats.wins + stats.losses + stats.draws << " games played. ";
+    cout << stats.wins << " wins,\t" << stats.draws << " draws,\t" << stats.losses << " losses" << endl;
+
+    //Enable training again.
+    player->setTrain(true);
+
+    cout << "\tTraining network." << endl;
+
+    for(int x = 0; x < 10; ++x)
+    {
+        trainFromDatabaseWithFile(player, database, FILENAME_USER_GAMES);
+        trainFromDatabaseWithFile(player, database, FILENAME_LEFTSIDE);
+        trainFromDatabaseWithFile(player, database, FILENAME_MOVEBLOCKER);
+        trainFromDatabaseWithFile(player, database, FILENAME_MULTIPLE);
+
+        cout << "\t\t" << 10 - x - 1 << " more iterations" << endl;
+    }
+
+    trainFromDatabaseWithFile(player, database, FILENAME_VERSUS);
+
+    //Turn off training for the player.
+    player->setTrain(false);
+
+    stats.init();
+
+    //Test the network 10 times on each type of opponent.
+    //stats += trainVersusSelf(player, database);   //No point in testing against itself.
+    //stats += trainVersusTerriblePlayer(player, database);
+    //stats += trainVersusMoveBlocker(player, database);
+    stats += trainVersusMultiple(player, database);
+
+    //Print results.
+    cout << "\t" << stats.wins + stats.losses + stats.draws << " games played. ";
+    cout << stats.wins << " wins,\t" << stats.draws << " draws,\t" << stats.losses << " losses" << endl;
+
+    //Enable training again.
+    player->setTrain(true);
+
+    //Return the number of training iterations to normal.
+    m_numTrainingIterations = numIterations;
+
+    return stats;
+}
+
+BoardState *ConnectFourTrainer::moveVerticalRight(BoardState *&currentState, Elements::PlayerType friendly, Elements::PlayerType opponent)
+{
+    //Move in the rightmost column.
+    currentState = currentState->getStateWithIndex(currentState->getNumNextStates() - 1);
+    return currentState;
+}
+
 BoardState *ConnectFourTrainer::moveVertical(BoardState *&currentState, Elements::PlayerType friendly, Elements::PlayerType opponent)
 {
     currentState = currentState->getStateWithIndex(0);
@@ -32,7 +162,7 @@ BoardState *ConnectFourTrainer::moveVertical(BoardState *&currentState, Elements
 
 BoardState *ConnectFourTrainer::moveBlocker(BoardState *&currentState, Elements::PlayerType friendly, Elements::PlayerType opponent)
 {
-    ConnectFourRulesEngine re;
+    static ConnectFourRulesEngine re;
     Grid *currentGrid = re.createGameSpecificGrid();
     *currentGrid = *(currentState->getCurrentGrid());
 
@@ -209,8 +339,11 @@ BoardState *ConnectFourTrainer::moveBlocker(BoardState *&currentState, Elements:
     return currentState;
 }
 
-AITrainingStats ConnectFourTrainer::trainVersusMultiple(NeuralNetPlayer *player) const
+AITrainingStats ConnectFourTrainer::trainVersusMultiple(NeuralNetPlayer *player, GameDatabase *database) const
 {
+    //Load the correct file into the database.
+    database->setDBFile(FILENAME_MULTIPLE);
+
     AITrainingStats trainingStats, totalStats;
     trainingStats.init();
 
@@ -235,8 +368,10 @@ AITrainingStats ConnectFourTrainer::trainVersusMultiple(NeuralNetPlayer *player)
 
         numRounds = 0;
 
-        if(x % 3 != 0)
+        if(x % 3 == 0)
             trainerFunction = moveVertical;
+        else if(x % 3 == 1)
+            trainerFunction = moveVerticalRight;
         else
             trainerFunction = moveBlocker;
 
@@ -285,6 +420,13 @@ AITrainingStats ConnectFourTrainer::trainVersusMultiple(NeuralNetPlayer *player)
                 Elements::GameState endState = m_rulesEngine->testBoard(current->getCurrentGrid());
                 if(endState != Elements::NORMAL)
                 {
+                    if(printGameStrings)
+                    {
+                        string end;
+                        current->toString(end);
+                        cout << end << endl;
+                    }
+
                     player->endStateReached(current, endState, false);
 
                     if(endState == Elements::P1WIN)
@@ -300,6 +442,13 @@ AITrainingStats ConnectFourTrainer::trainVersusMultiple(NeuralNetPlayer *player)
             {
                 Elements::GameState endState = m_rulesEngine->testBoard(current->getCurrentGrid());
                 player->endStateReached(current, endState, true);
+
+                if(printGameStrings)
+                {
+                    string end;
+                    current->toString(end);
+                    cout << end << endl;
+                }
 
                 if(endState == Elements::P1WIN)
                     ++trainingStats.wins;
@@ -323,6 +472,7 @@ AITrainingStats ConnectFourTrainer::trainVersusMultiple(NeuralNetPlayer *player)
             //Reset stats after training iteration.
             trainingStats.init();
 
+            /*
             //Print last game result
             for(int y = 0; y < C4_HEIGHT; ++y)
             {
@@ -332,18 +482,25 @@ AITrainingStats ConnectFourTrainer::trainVersusMultiple(NeuralNetPlayer *player)
                 }
                 cout << endl;
             }
-            cout << endl;
+            cout << endl;*/
         }
 #endif
+        //Write the game to the database.
+        database->storeGame(current);
     }
 
     delete root;
 
+    if(m_numTrainingIterations < m_printoutInterval)
+        return trainingStats;
     return totalStats;
 }
 
-AITrainingStats ConnectFourTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *player) const
+AITrainingStats ConnectFourTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *player, GameDatabase *database) const
 {
+    //Load the correct file into the database.
+    database->setDBFile(FILENAME_LEFTSIDE);
+
     AITrainingStats trainingStats, totalStats;
     trainingStats.init();
 
@@ -401,6 +558,10 @@ AITrainingStats ConnectFourTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *p
 
                 //Always take the leftmost possible column.
                 current = current->getStateWithIndex(0);
+
+                //Rightmost column.
+                //current = current->getStateWithIndex(current->getNumNextStates() - 1);
+
                 //Attempt to block every move the neural net makes.
 
                 //TODO: MoveBlocker doesn't exist yet.
@@ -410,9 +571,25 @@ AITrainingStats ConnectFourTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *p
                 Elements::GameState endState = m_rulesEngine->testBoard(current->getCurrentGrid());
                 if(endState != Elements::NORMAL)
                 {
+                    if(printGameStrings)
+                    {
+                        string end;
+                        current->toString(end);
+                        cout << end << endl;
+                    }
+
                     player->endStateReached(current, endState, false);
 
+                    /*
                     if(endState == Elements::P1WIN)
+                        ++trainingStats.wins;
+                    else if(endState == Elements::DRAW)
+                        ++trainingStats.draws;
+                    else
+                        ++trainingStats.losses;
+                        */
+
+                    if(endState == (Elements::GameState)player->getPlayer())
                         ++trainingStats.wins;
                     else if(endState == Elements::DRAW)
                         ++trainingStats.draws;
@@ -426,7 +603,23 @@ AITrainingStats ConnectFourTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *p
                 Elements::GameState endState = m_rulesEngine->testBoard(current->getCurrentGrid());
                 player->endStateReached(current, endState, true);
 
+                if(printGameStrings)
+                {
+                    string end;
+                    current->toString(end);
+                    cout << end << endl;
+                }
+
+                /*
                 if(endState == Elements::P1WIN)
+                    ++trainingStats.wins;
+                else if(endState == Elements::DRAW)
+                    ++trainingStats.draws;
+                else
+                    ++trainingStats.losses;
+                */
+
+                if(endState == (Elements::GameState)player->getPlayer())
                     ++trainingStats.wins;
                 else if(endState == Elements::DRAW)
                     ++trainingStats.draws;
@@ -448,6 +641,7 @@ AITrainingStats ConnectFourTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *p
             //Reset stats after training iteration.
             trainingStats.init();
 
+            /*
             //Print last game result
             for(int y = 0; y < C4_HEIGHT; ++y)
             {
@@ -457,18 +651,25 @@ AITrainingStats ConnectFourTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *p
                 }
                 cout << endl;
             }
-            cout << endl;
+            cout << endl;*/
         }
 #endif
+        //Store the game in the database.
+        database->storeGame(current);
     }
 
     delete root;
 
+    if(m_numTrainingIterations < m_printoutInterval)
+        return trainingStats;
     return totalStats;
 }
 
-AITrainingStats ConnectFourTrainer::trainVersusMoveBlocker(NeuralNetPlayer *player) const
+AITrainingStats ConnectFourTrainer::trainVersusMoveBlocker(NeuralNetPlayer *player, GameDatabase *database) const
 {
+    //Load the correct file into the database.
+    database->setDBFile(FILENAME_MOVEBLOCKER);
+
     AITrainingStats trainingStats, totalStats;
     trainingStats.init();
 
@@ -536,6 +737,13 @@ AITrainingStats ConnectFourTrainer::trainVersusMoveBlocker(NeuralNetPlayer *play
                 Elements::GameState endState = m_rulesEngine->testBoard(current->getCurrentGrid());
                 if(endState != Elements::NORMAL)
                 {
+                    if(printGameStrings)
+                    {
+                        string end;
+                        current->toString(end);
+                        cout << end << endl;
+                    }
+
                     player->endStateReached(current, endState, false);
 
                     if(endState == Elements::P1WIN)
@@ -551,6 +759,13 @@ AITrainingStats ConnectFourTrainer::trainVersusMoveBlocker(NeuralNetPlayer *play
             {
                 Elements::GameState endState = m_rulesEngine->testBoard(current->getCurrentGrid());
                 player->endStateReached(current, endState, true);
+
+                if(printGameStrings)
+                {
+                    string end;
+                    current->toString(end);
+                    cout << end << endl;
+                }
 
                 if(endState == Elements::P1WIN)
                     ++trainingStats.wins;
@@ -575,16 +790,22 @@ AITrainingStats ConnectFourTrainer::trainVersusMoveBlocker(NeuralNetPlayer *play
             trainingStats.init();
         }
 #endif
+        //Store game in the database.
+        database->storeGame(current);
     }
 
     delete root;
 
+    if(m_numTrainingIterations < m_printoutInterval)
+        return trainingStats;
     return totalStats;
-
 }
 
-AITrainingStats ConnectFourTrainer::trainVersusSelf(NeuralNetPlayer *player) const
+AITrainingStats ConnectFourTrainer::trainVersusSelf(NeuralNetPlayer *player, GameDatabase *database) const
 {
+    //Load the correct file into the database.
+    database->setDBFile(FILENAME_SELF);
+
     AITrainingStats trainingStats, totalStats;
     trainingStats.init();
 
@@ -638,6 +859,13 @@ AITrainingStats ConnectFourTrainer::trainVersusSelf(NeuralNetPlayer *player) con
 
             if(endState != Elements::NORMAL)
             {
+                if(printGameStrings)
+                {
+                    string end;
+                    current->toString(end);
+                    cout << end << endl;
+                }
+
                 //MovedLast doesn't actually matter if the number of moves is passed in.
                 player->endStateReached(current, endState, false, numRounds);
 
@@ -662,16 +890,22 @@ AITrainingStats ConnectFourTrainer::trainVersusSelf(NeuralNetPlayer *player) con
             trainingStats.init();
         }
 #endif
+        //Store game to database.
+        database->storeGame(current);
     }
 
     delete root;
 
+    if(m_numTrainingIterations < m_printoutInterval)
+        return trainingStats;
     return totalStats;
-
 }
 
-AITrainingStats ConnectFourTrainer::trainTwoNetworks(NeuralNetPlayer *player1, NeuralNetPlayer *player2) const
+AITrainingStats ConnectFourTrainer::trainTwoNetworks(NeuralNetPlayer *player1, NeuralNetPlayer *player2, GameDatabase *database)
 {
+    //Load the correct file into the database.
+    database->setDBFile(FILENAME_VERSUS);
+
     AITrainingStats trainingStats1, totalStats1;
     AITrainingStats trainingStats2, totalStats2, totalStats;
     trainingStats1.init();
@@ -723,6 +957,13 @@ AITrainingStats ConnectFourTrainer::trainTwoNetworks(NeuralNetPlayer *player1, N
             //endState will not be normal when the game reaches an ending state.
             if(endState != Elements::NORMAL)
             {
+                if(printGameStrings)
+                {
+                    string end;
+                    current->toString(end);
+                    cout << end << endl;
+                }
+
                 //EndStateReached is what will train the networks.  The function must be passed
                 //which player made the last move.
                 if(currentPlayer == Elements::PLAYER_1)
@@ -781,6 +1022,9 @@ AITrainingStats ConnectFourTrainer::trainTwoNetworks(NeuralNetPlayer *player1, N
             trainingStats2.init();
         }
 #endif
+
+        //Store the game in the database.
+        database->storeGame(current);
     }
     delete root;
     delete userOutput;
@@ -791,6 +1035,7 @@ AITrainingStats ConnectFourTrainer::trainTwoNetworks(NeuralNetPlayer *player1, N
     printLine2(" and lost ", totalStats1.losses);
 #endif
 
-    return totalStats = trainingStats1;
-
+    if(m_numTrainingIterations < m_printoutInterval)
+        return trainingStats1;
+    return totalStats = totalStats1;
 }

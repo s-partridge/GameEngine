@@ -50,6 +50,7 @@ public:
     void setCalcAsMax(bool calc) { calcAsMax = calc; }
     bool getCalcAsMax() { return calcAsMax; }
 
+
     void endStateReached(BoardState *currentState, Elements::GameState finalState, bool youMovedLast, int numRounds = 0);
 
     void reset();

@@ -29,6 +29,8 @@
 //#define DEBUG_C4VIEW
 //#define DEBUG_C4GAMEDATA
 
+//#define DEBUG_DATABASE_FILE_IO
+
 //#define DEBUG_TDNEURALNET
 
 //Math macros

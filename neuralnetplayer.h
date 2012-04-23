@@ -8,7 +8,7 @@
 class NeuralNetPlayer : public AIPlayer
 {
 public:
-    NeuralNetPlayer(Elements::PlayerType player) : m_neuralNetwork(NULL), m_player(player), m_rulesEngine(NULL) {}
+    NeuralNetPlayer(Elements::PlayerType player) : m_neuralNetwork(NULL), m_player(player), m_rulesEngine(NULL), train(true) {}
 
     void purge();
 
@@ -32,6 +32,9 @@ public:
 
     void setRulesEngine(RulesEngine *rulesEngine) { m_rulesEngine = rulesEngine; }
 
+
+    void setTrain(bool train) { this->train = train; }
+
     //Make a move, confirm that it's valid, and return it.
     void makeMove(const BoardState *currentState, Grid *&nextMove);
     //Make a move and return the raw results
@@ -42,7 +45,8 @@ public:
     //Corrected will be NULL if the neural network made a valid move.
     void checkResults(const BoardState *currentState, Grid *results, Grid *&corrected);
 
-    void trainNetwork(double *actualOutputs, double *expectedOutputs) { m_neuralNetwork->backpropagate(actualOutputs, expectedOutputs); }
+    //Train the neural network if necessary.
+    void trainNetwork(double *actualOutputs, double *expectedOutputs) { if(train) m_neuralNetwork->backpropagate(actualOutputs, expectedOutputs); }
 
     Elements::PlayerType getPlayer() { return m_player; }
     void setPlayer(Elements::PlayerType player) { m_player = player; }
@@ -60,6 +64,8 @@ protected:
     NeuralNetwork *m_neuralNetwork;
     Elements::PlayerType m_player;
     RulesEngine *m_rulesEngine;
+
+    bool train;
 };
 
 #endif // NEURALNETPLAYER_H

@@ -18,6 +18,7 @@
 #include "datacontroller.h"
 #include "statisticsdata.h"
 #include "gamedata.h"
+#include "gamedatabase.h"
 
 class GameEngineBuilder
 {

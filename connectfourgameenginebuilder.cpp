@@ -13,6 +13,9 @@ void ConnectFourGameEngineBuilder::generateGameEngine(MainWindow *&mainWindow, V
     gameData = new ConnectFourGameData();
     gameData->init(rulesEngine);
 
+    //Set the correct directory for the database to load from.
+    //Directory_slash is used to differentiate between Windows and Unix file systems.
+
     //Generate a data controller object and passit the objects it needs.
     dataController = new DataController();
     dataController->setRulesEngine(rulesEngine);
@@ -21,6 +24,12 @@ void ConnectFourGameEngineBuilder::generateGameEngine(MainWindow *&mainWindow, V
 
     //Generate the game controller.
     gameController = new GameController();
+
+    //Open the database from the correct directory.
+    string directory = DIRECTORY_C4;
+    directory += DIRECTORY_SLASH;
+    gameController->setDatabaseDirectory(directory);
+
     gameController->setDataController(dataController);
     gameController->setAIBuilder(new C4NNBuilder());
     gameController->setAITrainer(new ConnectFourTrainer(C4_NUM_TRAINING_ITERATIONS, rulesEngine));

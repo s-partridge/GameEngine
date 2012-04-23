@@ -4,6 +4,8 @@ GameController::GameController()
     : m_NNPlayer1(NULL), m_NNPlayer2(NULL), m_dataController(NULL),
       m_AIBuilder(NULL), m_AITrainer(NULL), m_rulesEngine(NULL)
 {
+    m_database = new GameDatabase();
+
     m_human1 = new Human();
     m_human2 = new Human();
 
@@ -21,6 +23,12 @@ GameController::GameController()
 //Delete everything that was created locally.
 void GameController::purge()
 {
+    if(m_database != NULL)
+    {
+        delete m_database;
+        m_database = NULL;
+    }
+
     if(m_human1 != NULL)
     {
         delete m_human1;
@@ -57,6 +65,7 @@ void GameController::purge()
         m_AITrainer = NULL;
     }
 }
+
 //Generate a neural network and store its parameters in the file specified by filename.
 void GameController::createNNPlayer(Elements::PlayerType player, string filename)
 {
@@ -201,6 +210,10 @@ void GameController::gameOver()
 {
     //The current state will be needed several times.  Why keep calling a function to retrieve it?
     BoardState *temp = m_dataController->getCurrentState();
+
+    //Store the game to the database.
+    m_database->storeGame(temp);
+
     Elements::GameState endState =m_rulesEngine->testBoard(temp->getCurrentGrid());
     //This will perform live training of the neural network players.
     if(m_dataController->getRoundNumber() % 2)
@@ -209,7 +222,6 @@ void GameController::gameOver()
             m_NNPlayer1->endStateReached(temp, endState, true, m_dataController->getRoundNumber());
         if(p2IsAI)
             m_NNPlayer2->endStateReached(temp, endState, false, m_dataController->getRoundNumber());
-
     }
     else
     {
@@ -273,8 +285,11 @@ void GameController::trainAI(Elements::PlayerType player = Elements::NONE)
     {
         if(m_NNPlayer1 != NULL)
         {
-            results = m_AITrainer->trainNetwork(m_NNPlayer1);
+            results = m_AITrainer->trainNetwork(m_NNPlayer1, m_database);
             m_dataController->addToTrainingStats(results, Elements::PLAYER_1);
+
+            //Reset the database to write to the user games file.
+            m_database->setDBFile(FILENAME_USER_GAMES);
         }
     }
 
@@ -282,8 +297,11 @@ void GameController::trainAI(Elements::PlayerType player = Elements::NONE)
     {
         if(m_NNPlayer2 != NULL)
         {
-            results = m_AITrainer->trainNetwork(m_NNPlayer2);
+            results = m_AITrainer->trainNetwork(m_NNPlayer2, m_database);
             m_dataController->addToTrainingStats(results, Elements::PLAYER_2);
+
+            //Reset the database to write to the user games file.
+            m_database->setDBFile(FILENAME_USER_GAMES);
         }
     }
 
@@ -291,8 +309,11 @@ void GameController::trainAI(Elements::PlayerType player = Elements::NONE)
     {
         if(m_NNPlayer1 != NULL && m_NNPlayer2 != NULL)
         {
-            results = m_AITrainer->trainTwoNetworks(m_NNPlayer1, m_NNPlayer2);
+            results = m_AITrainer->trainTwoNetworks(m_NNPlayer1, m_NNPlayer2, m_database);
             //Todo: Add a method in dataController to add a total for both players.
+
+            //Reset the database to write to the user games file.
+            m_database->setDBFile(FILENAME_USER_GAMES);
         }
     }
 }

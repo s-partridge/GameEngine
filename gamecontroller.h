@@ -1,3 +1,6 @@
+//IMPORTANT NOTE: it is assumed that the following member variables have references outside this class:
+//m_dataController, m_AIBuilder, m_AITrainer, m_rulesEngine
+
 #ifndef GAMECONTROLLER_H
 #define GAMECONTROLLER_H
 
@@ -12,6 +15,7 @@
 #include "trainer.h"
 #include "rulesengine.h"
 #include "macros.h"
+#include "gamedatabase.h"
 
 using namespace std;
 
@@ -37,6 +41,7 @@ public:
     void setAIBuilder(NeuralNetBuilder *AIBuilder) { m_AIBuilder = AIBuilder; }
     void setAITrainer(Trainer *trainer) { m_AITrainer = trainer; }
     void setRulesEngine(RulesEngine *rulesEngine) { m_rulesEngine = rulesEngine; }
+    void setDatabaseDirectory(string directory) { m_database->setDirectory(directory); m_database->setDBFile(FILENAME_USER_GAMES); }
 
     //Try to make move based on passed grid and player ID.
     //If player is AI, move will be ignored and currentState
@@ -87,6 +92,7 @@ private:
     NeuralNetBuilder *m_AIBuilder;
     Trainer *m_AITrainer;
     RulesEngine *m_rulesEngine;
+    GameDatabase *m_database;
 };
 
 #endif // GAMECONTROLLER_H

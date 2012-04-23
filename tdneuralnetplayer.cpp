@@ -283,6 +283,7 @@ void TDNeuralNetPlayer::makeMove(const BoardState *currentState, Grid *&nextMove
     }
     else
     {
+        cout << "Random move made" << endl;
         //Randomly select a move.
         *nextMove = *(currentState->getStateWithIndex(rand() % currentState->getNumNextStates())->getCurrentGrid());
         //Evaluate that move and store the result.
@@ -295,6 +296,10 @@ void TDNeuralNetPlayer::makeMove(const BoardState *currentState, Grid *&nextMove
 
 void TDNeuralNetPlayer::endStateReached(BoardState *currentState, Elements::GameState finalState, bool youMovedLast, int numRounds)
 {
+    //Go through this process only if the player is set to learn.
+    if(!train)
+        return;
+
     double finalStateValue;
     if(finalState == Elements::DRAW)
         finalStateValue = TD_DRAW;

@@ -19,8 +19,17 @@ void TicTacToeGameEngineBuilder::generateGameEngine(MainWindow *&mainWindow, Vie
     dataController->setStatistics(statisticsData);
     dataController->setMoveTree(gameData);
 
+    //Set the correct directory for the database to load from.
+    //Directory_slash is used to differentiate between Windows and Unix file systems.
+
     //Generate the game controller.
     gameController = new GameController();
+
+    //Open the database from the correct directory.
+    string directory = DIRECTORY_TTT;
+    directory += DIRECTORY_SLASH;
+    gameController->setDatabaseDirectory(directory);
+
     gameController->setDataController(dataController);
     gameController->setAITrainer(new TicTacToeTrainer(NUM_TRAINING_ITERATIONS, rulesEngine));
     gameController->setAIBuilder(new TTTNNBuilder());

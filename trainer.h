@@ -18,6 +18,7 @@
 #include "neuralnetplayer.h"
 #include "statstructures.h"
 #include "rulesengine.h"
+#include "gamedatabase.h"
 
 //Used when generating a move tree to determine how much of it should be created at once.
 #define DFS_TREE_DEPTH 3
@@ -35,8 +36,8 @@ public:
     void setNumIterations(int numTrainingIterations) { m_numTrainingIterations = numTrainingIterations; }
     void setPrintoutInterval(int printoutInterval) { m_printoutInterval = printoutInterval; }
 
-    virtual AITrainingStats trainNetwork(NeuralNetPlayer *player) const = 0;
-    virtual AITrainingStats trainTwoNetworks(NeuralNetPlayer *player1, NeuralNetPlayer *player2) const = 0;
+    virtual AITrainingStats trainNetwork(NeuralNetPlayer *player, GameDatabase *database) = 0;
+    virtual AITrainingStats trainTwoNetworks(NeuralNetPlayer *player1, NeuralNetPlayer *player2, GameDatabase *databse) = 0;
 };
 
 #endif // TRAINER_H

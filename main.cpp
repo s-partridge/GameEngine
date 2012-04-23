@@ -1,5 +1,5 @@
-//#define SHOW_GUI
-#define QUICK_TEST
+#define SHOW_GUI
+//#define QUICK_TEST
 
 #include <QtGui/QApplication>
 
@@ -16,7 +16,7 @@ void setSpecificWeights(NeuralNetwork *network);
 
 void tryWriteFiles(string filename);
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
 #ifdef SHOW_GUI
     QApplication a(argc, argv);
@@ -27,8 +27,6 @@ int main(int argc, char *argv[])
     DataController *dataController;
     StatisticsData *statisticsData;
     GameData *gameData;
-
-    print("Generating objects\n");
 
     //TicTacToeGameEngineBuilder gameEngineBuilder;
     ConnectFourGameEngineBuilder gameEngineBuilder;
@@ -46,10 +44,12 @@ int main(int argc, char *argv[])
 
     static int retVal = a.exec();
 
-    delete statisticsData;
-    delete dataController;
-    delete gameController;
+    delete mainWindow;
     delete viewController;
+    delete gameController;
+    delete dataController;
+    delete statisticsData;
+    delete gameData;
 
     return retVal;
 #endif
@@ -88,7 +88,6 @@ int main(int argc, char *argv[])
     GameDatabase &db2 = GameDatabase::getDatabase();
     int retVal = db2.loadGameFromIndex(root, last, 0, re);
 
-
     if(retVal == 0)
     {
         for(int x = 0; x < C4_HEIGHT; ++x)
@@ -116,15 +115,23 @@ int main(int argc, char *argv[])
 
     for(int x = 0; x < db.size(); ++x)
     {
-        cout << db.loadStringFromIndex(x) << '\n';
+        db.loadStringFromIndex(x, game);
+        cout << game << '\n';
     }
+
+    retVal = db.loadStringFromIndex(0, game);
+    cout << game.length() << endl;
 
     if(retVal != 0)
     {
         switch(retVal)
         {
-        case ERROR_FILE_EMPTY:
-            cerr << "File empty\n";
+        case ERROR_EMPTY:
+            cerr << "File empty" << endl;
+            break;
+        case ERROR_BAD_INDEX:
+            cerr << "Database index requested is not valid\n" << endl;
+            break;
         default:
             cerr << "Unknown error occurred\n";
         }
@@ -166,12 +173,6 @@ void tryWriteFiles(string filename)
 
     i.open(filename.c_str(), ios::binary);
 
-    char fout;
- /*   while(!i.eof())
-    {
-        i.read((char *)&fout, sizeof(char));
-        output += fout;
-    }*/
     i >> output;
 
     cout << output << endl;
