@@ -14,7 +14,7 @@ public:
 
     //A player subclass can implement these, but they may not be necessary.
     virtual void reset() { }
-    virtual void endStateReached(BoardState *currentState, Elements::GameState finalState, bool youMovedLast, int numRounds = 0) { }
+    virtual double endStateReached(BoardState *currentState, Elements::GameState finalState, bool youMovedLast, int numRounds = 0) { return 0.0; }
 
 protected:
     Elements::PlayerType m_player;

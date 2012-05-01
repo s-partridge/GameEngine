@@ -20,11 +20,14 @@
 //  I could easily reach that number in one database.  Since different types of training
 //  tend to yield different kinds of games, I can store a larger variety.
 #define FILENAME_TERRIBLE       "terrible.db"
+#define FILENAME_BLOCKER        "moveblocker.db"
 #define FILENAME_VERSUS         "versus.db"
 #define FILENAME_SELF           "self.db"
 
 class TicTacToeTrainer : public Trainer
 {
+    bool printGameStrings;
+
     BoardState *pickNextMoveToTrain(BoardState *currentState) const;
 
     //No need to add database to these two methods; they don't actually do anything now.
@@ -34,6 +37,9 @@ class TicTacToeTrainer : public Trainer
 
     AITrainingStats trainVersusSelf(NeuralNetPlayer *player, GameDatabase *database) const;
     AITrainingStats trainVersusTerriblePlayer(NeuralNetPlayer *player, GameDatabase *database) const;
+    AITrainingStats trainVersusMoveBlocker(NeuralNetPlayer *player, GameDatabase *database) const;
+    AITrainingStats trainFromDatabase(NeuralNetPlayer *player, GameDatabase *database);
+    AITrainingStats trainFromDatabaseWithFile(NeuralNetPlayer *player, GameDatabase *database, string filename) const;
 
     void moveBlocker(BoardState *&currentState, Elements::PlayerType friendly, Elements::PlayerType opponent) const;
 
@@ -42,7 +48,7 @@ class TicTacToeTrainer : public Trainer
                    map<string, int> &hashmap) const;
 
 public:
-    TicTacToeTrainer(int numTrainingIterations, RulesEngine *rulesEngine) : Trainer(numTrainingIterations, rulesEngine) {}
+    TicTacToeTrainer(int numTrainingIterations, RulesEngine *rulesEngine) : Trainer(numTrainingIterations, rulesEngine), printGameStrings(false) {}
 
     AITrainingStats trainNetwork(NeuralNetPlayer *player, GameDatabase *database);
     AITrainingStats trainTwoNetworks(NeuralNetPlayer *player1, NeuralNetPlayer *player2, GameDatabase *database);

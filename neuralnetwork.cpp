@@ -569,7 +569,7 @@ void NeuralNetwork::getResults(const double *inputs, double *&outputs)
     outputs = new double[m_numOutputs];
     m_outputLayer.getResult(tempInputs, outputs);
 
-#ifdef DEBUG_NNOUTPUTS
+#ifdef DEBUG_NNRESULTS
     print("Results:");
     for(int x = 0; x < m_numOutputs; ++x)
     {

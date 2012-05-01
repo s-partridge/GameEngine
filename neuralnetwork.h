@@ -29,6 +29,7 @@ public:
     int getNumLayers() const { return m_numHiddenLayers + 1; }
     int getNumInputs() const { return m_numInputs; }
     int getNumOutputs() const { return m_numOutputs; }
+    int getNumHiddenNeurons(int layer) { return (layer < m_numHiddenLayers && layer >= 0) ? m_hiddenLayers[layer].getNumNeurons() : 0; }
 
     void setLayerWeights(int layer, double **weights);
     void setLayerMomentum(int layer, double momentum);

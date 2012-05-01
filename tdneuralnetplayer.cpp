@@ -1,5 +1,7 @@
 #include "tdneuralnetplayer.h"
 
+//#define USE_DLS
+
 PastWeightMatrix::PastWeightMatrix(int numRounds, int numOutputs)
     : previousOutputs(NULL), idealOutputs(NULL)
 {
@@ -119,7 +121,6 @@ double TDNeuralNetPlayer::depthLimitedSearch(const BoardState *currentState, int
         //There is only one output from the network for board evaluations.
         double *results = NULL;
 
-        // TODO:  MAKE SURE THIS WORKS!!!  Need to refactor if this doesn't actually give me a value.
         getResults(currentState->getCurrentGrid(), player, (double *&)results);
 
         bestIndex = DLS_EVALUATED_STATE;
@@ -178,6 +179,12 @@ double TDNeuralNetPlayer::depthLimitedSearch(const BoardState *currentState, int
 
         }
 
+        //Add the value of the current state to the calculation.
+        double *results = NULL;
+        getResults(currentState->getCurrentGrid(), player, (double *&)results);
+        resultTotal += results[0];
+        delete [] results;
+
         //Return the highest or lowest value.
         return resultTotal;
     }
@@ -206,6 +213,8 @@ void TDNeuralNetPlayer::makeMove(const BoardState *currentState, Grid *&nextMove
     if((rand() % RANDOM_MOVE_INTERVAL)/* true*/)
     {
         int bestIndex = 0;
+
+#ifdef USE_DLS
         //////////////////////////////
         //Using Depth-limited search//
         //////////////////////////////
@@ -213,7 +222,7 @@ void TDNeuralNetPlayer::makeMove(const BoardState *currentState, Grid *&nextMove
         //DLS returns the value of the best state it found, but we don't really care about that.
         depthLimitedSearch(currentState, DLS_SEARCH_DEPTH, bestIndex, m_player);
 
-        /*
+#else
         /////////////////////////////////////////
         ////Use minimax to determine best state//
         /////////////////////////////////////////
@@ -275,15 +284,14 @@ void TDNeuralNetPlayer::makeMove(const BoardState *currentState, Grid *&nextMove
 
         delete [] results;
         delete [] allResults;
-*/
+
+//End of #ifdef USE_DLS; #else
+#endif
         //Return the grid of the best state.
-
-
         *nextMove = *(currentState->getStateWithIndex(bestIndex)->getCurrentGrid());
     }
     else
     {
-        cout << "Random move made" << endl;
         //Randomly select a move.
         *nextMove = *(currentState->getStateWithIndex(rand() % currentState->getNumNextStates())->getCurrentGrid());
         //Evaluate that move and store the result.
@@ -294,11 +302,11 @@ void TDNeuralNetPlayer::makeMove(const BoardState *currentState, Grid *&nextMove
     m_currentRound += 2;
 }
 
-void TDNeuralNetPlayer::endStateReached(BoardState *currentState, Elements::GameState finalState, bool youMovedLast, int numRounds)
+double TDNeuralNetPlayer::endStateReached(BoardState *currentState, Elements::GameState finalState, bool youMovedLast, int numRounds)
 {
     //Go through this process only if the player is set to learn.
     if(!train)
-        return;
+        return 0.0;
 
     double finalStateValue;
     if(finalState == Elements::DRAW)
@@ -401,11 +409,35 @@ void TDNeuralNetPlayer::endStateReached(BoardState *currentState, Elements::Game
     }
     printLine("");
 #endif
+
+    //Calculate root mean square.
+    double delta;
+    double rms = 0.0;
+
+    for(int x = 0; x < m_currentRound; ++x)
+    {
+        //TD_WIN is the absolute value of TD_LOSS.  By adding TD_WIN to both the ideal and actual
+        //outputs, we get correct positive numbers.  For example, if TD_WIN is 1, then the range of
+        //results is from -1 to 1.  If the number -0.5 is found, 1 will be added to it, making it positive.
+       // m_oldWeights.idealOutputs[x][0] = (m_oldWeights.idealOutputs[x][0] + 1) / 2.0;
+       // m_oldWeights.previousOutputs[x][0] = (m_oldWeights.previousOutputs[x][0] + 1) / 2.0;
+        delta = m_oldWeights.idealOutputs[x][0] - m_oldWeights.previousOutputs[x][0];// + TD_WIN + TD_WIN;
+        //The delta must be within the range 0 - 1.  Therefore, we need to squash the result.
+        //Basically, this removes the negative range that is used for losses by the neural network.
+        //delta = (delta / (TD_WIN * 2));
+        rms += delta * delta;
+    }
+
+    //Get the root of the average error for this game.
+    rms = sqrt(rms / m_currentRound);
+
     if(m_player == Elements::PLAYER_1)
         m_currentRound = 0;
     else
         m_currentRound = 1;
     //reset();
+
+    return rms;
 }
 
 void TDNeuralNetPlayer::reset()

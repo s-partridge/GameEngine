@@ -1,6 +1,6 @@
 #include "connectfourtrainer.h"
 
-#define DBTRAIN
+//#define DBTRAIN
 
 AITrainingStats ConnectFourTrainer::trainNetwork(NeuralNetPlayer *player, GameDatabase *database)
 {
@@ -13,11 +13,11 @@ AITrainingStats ConnectFourTrainer::trainNetwork(NeuralNetPlayer *player, GameDa
 #ifdef DEBUG_TRAINER
     printLine("Training against terrible player");
 #endif
-    trainVersusTerriblePlayer(player, database);
+    //trainVersusTerriblePlayer(player, database);
 #ifdef DEBUG_TRAINER
     printLine("Training against blocking player");
 #endif
-   // trainVersusMoveBlocker(player, database);
+    trainVersusMoveBlocker(player, database);
 #ifdef DEBUG_TRAINER
     printLine("Training against multiple players");
 #endif

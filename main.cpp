@@ -1,6 +1,9 @@
 #define SHOW_GUI
 //#define QUICK_TEST
 
+#define TICTACTOE
+//#define CONNECTFOUR
+
 #include <QtGui/QApplication>
 
 #include "tictactoegameenginebuilder.h"
@@ -28,8 +31,13 @@ int main(int argc, char **argv)
     StatisticsData *statisticsData;
     GameData *gameData;
 
-    //TicTacToeGameEngineBuilder gameEngineBuilder;
+#ifdef TICTACTOE
+    TicTacToeGameEngineBuilder gameEngineBuilder;
+#else
+    #ifdef CONNECTFOUR
     ConnectFourGameEngineBuilder gameEngineBuilder;
+    #endif
+#endif
     gameEngineBuilder.generateGameEngine(mainWindow, viewController, gameController,
                                          dataController, statisticsData, gameData);
 
@@ -55,7 +63,8 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef QUICK_TEST
-    std::string game = "0101010";
+    trainXOR();
+   /* std::string game = "0101010";
 
     ConnectFourRulesEngine *re = new ConnectFourRulesEngine;
     Grid *newGrid = re->createGameSpecificGrid();
@@ -135,7 +144,7 @@ int main(int argc, char **argv)
         default:
             cerr << "Unknown error occurred\n";
         }
-    }
+    }*/
 #endif
 }
 
@@ -203,12 +212,12 @@ void trainXOR()
         inputs[x] = new double[2];
     }
 
-    inputs[0][0] = 0;
-    inputs[0][1] = 0;
-    inputs[1][0] = 0;
+    inputs[0][0] = -1;
+    inputs[0][1] = -1;
+    inputs[1][0] = -1;
     inputs[1][1] = 1;
     inputs[2][0] = 1;
-    inputs[2][1] = 0;
+    inputs[2][1] = -1;
     inputs[3][0] = 1;
     inputs[3][1] = 1;
 
@@ -218,14 +227,14 @@ void trainXOR()
         expected[x] = new double[1];
     }
 
-    expected[0][0] = 0;
+    expected[0][0] = -1;
     expected[1][0] = 1;
     expected[2][0] = 1;
-    expected[3][0] = 0;
+    expected[3][0] = -1;
 
     double *outputs = new double[1];
 
-    string filename = "xor18.nnp";
+    string filename = "xor2.p";
     fstream io;
 
     io.open(filename.c_str(), ios::in | ios::out);
@@ -255,12 +264,16 @@ void trainXOR()
     net->setLayerActivation(1, newFunctor);
 
     newFunctor = new Sigmoid();
+    ((Sigmoid *)newFunctor)->setVerticalStretchFactor(2);
+    ((Sigmoid *)newFunctor)->setVerticalShiftFactor(-1);
     ((Sigmoid *)newFunctor)->setHorizontalStretchFactor(2);
     net->setLayerActivation(2, newFunctor);
 
-
     for(int x = 0; x < 500; ++x)
     {
+        double delta;
+        double rms = 0.0;
+
         for(int y = 0; y < 4; ++y)
         {
             //int z = rand() % 4;
@@ -269,8 +282,16 @@ void trainXOR()
             cout << "\toutputs: " << outputs[0];
             net->backpropagate(outputs, expected[y]);
             cout << "\texpected: " << expected[y][0] << "\n";
+
+            //Find mean square error.
+            delta = expected[y][0] - outputs[0];
+            rms += delta * delta;
         }
         net->applyWeightChanges();
+
+        rms = sqrt(rms / 4);
+
+        cout << "\tRoot mean square: " << rms << endl;
     }
 
     delete net;

@@ -22,10 +22,11 @@ struct AITrainingStats
     int draws;
     int losses;
     int totalMoves;
+    double rootMeanSquare;
     double percentageBest;
     double percentageWorst;
 
-    AITrainingStats() : bestMoves(0), errors(0), wins(0), draws(0), losses(0), totalMoves(0), percentageBest(0), percentageWorst(0) {}
+    AITrainingStats() : bestMoves(0), errors(0), wins(0), draws(0), losses(0), totalMoves(0), rootMeanSquare(0), percentageBest(0), percentageWorst(0) {}
 
     AITrainingStats operator=(const AITrainingStats &rhs);
     AITrainingStats operator+=(const AITrainingStats &rhs);

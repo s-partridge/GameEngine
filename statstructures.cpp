@@ -37,6 +37,7 @@ void AITrainingStats::init()
     draws = 0;
     losses = 0;
     totalMoves = 0;
+    rootMeanSquare = 0.0;
     percentageBest = 0.0;
     percentageWorst = 0.0;
 }
@@ -50,6 +51,7 @@ AITrainingStats AITrainingStats::operator =(const AITrainingStats &rhs)
     losses = rhs.losses;
     totalMoves = rhs.totalMoves;
 
+    rootMeanSquare = rhs.rootMeanSquare;
     percentageBest = rhs.percentageBest;
     percentageWorst = rhs.percentageWorst;
 
@@ -64,6 +66,7 @@ AITrainingStats AITrainingStats::operator+=(const AITrainingStats &rhs)
     draws += rhs.draws;
     losses += rhs.losses;
     totalMoves += rhs.totalMoves;
+    rootMeanSquare = rhs.rootMeanSquare;
 
     if(totalMoves != 0)
     {

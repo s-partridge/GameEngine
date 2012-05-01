@@ -19,6 +19,7 @@
 //#define DEBUG_NEURONLAYER_MOMENTUM
 //#define DEBUG_NEURALNETWORK
 //#define DEBUG_NNOUTPUTS
+//#define DEBUG_NNRESULTS
 //#define DEBUG_NNDERIVATIVE
 //#define DEBUG_SAVENNP
 //#define DEBUG_GAMECONTROLLER
@@ -37,6 +38,8 @@
 //Floor reduces a floating point number to its integer component.
 //By adding 0.5, we ensure that a number with a decimal part >= 0.5 will be rounded up.
 #define round(x)                    (floor(x + 0.5))
+//Absolute value macro for floating point numbers.
+#define absd(x) (x < 0 ? x * -1 : x)
 
 //Printing macros used in testing.
 #define print(x)                    std::cout << x

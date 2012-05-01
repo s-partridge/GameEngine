@@ -46,7 +46,7 @@ TDNeuralNetPlayer *C4NNBuilder::buildNeuralNet(Elements::PlayerType player, Rule
     //Represent a value between 0 (loss) and 10 (win)
     ((Sigmoid *)activation)->setVerticalStretchFactor(2);
     ((Sigmoid *)activation)->setVerticalShiftFactor(-1);
-    ((Sigmoid *)activation)->setHorizontalStretchFactor(0.4);
+    ((Sigmoid *)activation)->setHorizontalStretchFactor(C4_STRETCH_FACTOR);
 
     newNetwork->setActivationFunction(activation, 2);
 
@@ -77,7 +77,15 @@ TDNeuralNetPlayer *C4NNBuilder::loadNeuralNet(Elements::PlayerType player, Rules
     //one whole number for each board column.
     ((Sigmoid *)activation)->setVerticalStretchFactor(2);
     ((Sigmoid *)activation)->setVerticalShiftFactor(-1);
-    ((Sigmoid *)activation)->setHorizontalStretchFactor(0.4);
+
+    if(newNetwork->getHiddenLayerNeurons(C4_NUM_LAYERS - 1) < 50)
+    {
+        ((Sigmoid *)activation)->setHorizontalStretchFactor(0.4);
+    }
+    else
+    {
+        ((Sigmoid *)activation)->setHorizontalStretchFactor(C4_STRETCH_FACTOR);
+    }
 
     newNetwork->setActivationFunction(activation, 2);
 

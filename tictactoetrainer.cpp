@@ -1,13 +1,150 @@
 #include "tictactoetrainer.h"
 
+//#define DBTRAIN
 
 AITrainingStats TicTacToeTrainer::trainNetwork(NeuralNetPlayer *player, GameDatabase *database)
 {
-    //return trainOnBestTrackPlus(player);
-    //return trainOnBestStatesOnly(player);
-    return trainVersusTerriblePlayer(player, database);
-    //return trainVersusSelf(player);
+    database->setPrintLogs(false);
+#ifndef DBTRAIN
+#ifdef DEBUG_TRAINER
+    cout << "Training versus terrible player" << endl;
+#endif
+    //for(int x = 0; x < 4; ++x)
+    m_numTrainingIterations /= 10;
+    trainVersusTerriblePlayer(player, database);
+    m_numTrainingIterations *= 10;
+#ifdef DEBUG_TRAINER
+    cout << "Training versus self" << endl;
+#endif
+    //trainVersusSelf(player, database);
+#ifdef DEBUG_TRAINER
+    //m_numTrainingIterations = 100;
+    //m_printoutInterval = 1;
+    cout << "Training versus blocking player" << endl;
+#endif
+    trainVersusMoveBlocker(player, database);
+#else
+    printGameStrings = true;
+ //   for(int x = 0; x < 5; ++x)
+ //   {
+ //       cout << "train from database. " << 5 - x << " more iteration(s)." << endl;
+        trainFromDatabase(player, database);
+ //   }
+    printGameStrings = false;
+
+    /*database->setDBFile("small.db");
+    BoardState *root = NULL;
+    BoardState *current = NULL;
+    int gameLength;
+    for(int x = 0; x < m_numTrainingIterations; ++x)
+    {
+        database->loadGameFromIndex(root, current, gameLength, 0, m_rulesEngine);
+
+        cout << player->endStateReached(current, m_rulesEngine->testBoard(current->getCurrentGrid()), true, gameLength) << endl;
+    }*/
+#endif
+    database->setPrintLogs(true);
 }
+
+AITrainingStats TicTacToeTrainer::trainFromDatabaseWithFile(NeuralNetPlayer *player, GameDatabase *database, string filename) const
+{
+    AITrainingStats stats;
+    BoardState *root = NULL;
+    BoardState *current = NULL;
+    //Load database for training.
+    database->setDBFile(filename);
+    //Start with the data file already loaded.
+    int size = database->size();
+    int gameLength;
+
+    //cout << "\n\t\t" << size << " games in database\n";
+
+    for(int x = 0; x < size; ++x)
+    {
+        //Print out status a set number of times.
+        //Print out number
+        //if(x == size >> 2 || x == size >> 1 || x == ((size >> 2) + (size >> 1)))
+        //    cout << "\r\t\t" << size - x << " games remaining...";
+        //Pick a random game from the database.
+       // int index = rand() % size;
+        //Pull a game from the database.
+        database->loadGameFromIndex(root, current, gameLength, x, m_rulesEngine);
+        //Get the end state of the game.
+        Elements::GameState endState = m_rulesEngine->testBoard(current->getCurrentGrid());
+        //Train the player.
+        //False is used because youMovedLast only matters when the game length is not defined.
+        player->endStateReached(current, endState, false, gameLength);
+
+    }
+    //cout << endl;
+
+    return stats;
+}
+
+AITrainingStats TicTacToeTrainer::trainFromDatabase(NeuralNetPlayer *player, GameDatabase *database)
+{
+    cout << "Train from databases" << endl;
+
+    AITrainingStats stats;
+
+    int numIterations = m_numTrainingIterations;
+
+    //Evaluate the neural network before and after training.
+    m_numTrainingIterations = 10;
+
+    //Turn off training for the player.
+    player->setTrain(false);
+
+    //Test the network 10 times on each type of opponent.
+    //stats += trainVersusSelf(player, database);   //No point in testing against itself.
+    stats += trainVersusTerriblePlayer(player, database);
+    stats += trainVersusMoveBlocker(player, database);
+
+    //Print results.
+    cout << "\t" << stats.wins + stats.losses + stats.draws << " games played. ";
+    cout << stats.wins << " wins,\t" << stats.draws << " draws,\t" << stats.losses << " losses" << endl;
+
+    //Enable training again.
+    player->setTrain(true);
+
+    cout << "\tTraining network." << endl;
+
+    int numGameIterations = 900;
+    for(int x = 0; x < numGameIterations; ++x)
+    {
+        trainFromDatabaseWithFile(player, database, FILENAME_USER_GAMES);
+        trainFromDatabaseWithFile(player, database, FILENAME_TERRIBLE);
+        trainFromDatabaseWithFile(player, database, FILENAME_VERSUS);
+        trainFromDatabaseWithFile(player, database, FILENAME_SELF);
+
+        cout << "\t\t" << numGameIterations - x - 1 << " more iterations" << endl;
+    }
+
+    trainFromDatabaseWithFile(player, database, FILENAME_VERSUS);
+
+    //Turn off training for the player.
+    player->setTrain(false);
+
+    stats.init();
+
+    //Test the network 10 times on each type of opponent.
+    //stats += trainVersusSelf(player, database);   //No point in testing against itself.
+    stats += trainVersusTerriblePlayer(player, database);
+    stats += trainVersusMoveBlocker(player, database);
+
+    //Print results.
+    cout << "\t" << stats.wins + stats.losses + stats.draws << " games played. ";
+    cout << stats.wins << " wins,\t" << stats.draws << " draws,\t" << stats.losses << " losses" << endl;
+
+    //Enable training again.
+    player->setTrain(true);
+
+    //Return the number of training iterations to normal.
+    m_numTrainingIterations = numIterations;
+
+    return stats;
+}
+
 
 void switchCurrentPlayer(Elements::PlayerType &player)
 {
@@ -189,7 +326,7 @@ AITrainingStats TicTacToeTrainer::trainVersusSelf(NeuralNetPlayer *player, GameD
 
     int numRounds;
 
-    for(int x = 0; x < 1; ++x)
+    for(int x = 0; x < m_numTrainingIterations; ++x)
     {
         currentPlayer = Elements::PLAYER_1;
 
@@ -238,7 +375,7 @@ AITrainingStats TicTacToeTrainer::trainVersusSelf(NeuralNetPlayer *player, GameD
             }
         }
 #ifdef DEBUG_TRAINER
-        if(x % 1000 == 999)
+        if((x % m_printoutInterval == m_printoutInterval - 1))
         {
             print2(x + 1, " games completed.\t");
             print4("Neural network won ", trainingStats.wins, " games, tied ", trainingStats.draws);
@@ -254,6 +391,9 @@ AITrainingStats TicTacToeTrainer::trainVersusSelf(NeuralNetPlayer *player, GameD
     }
 
     delete root;
+
+    if(m_numTrainingIterations < m_printoutInterval)
+        return trainingStats;
 
     return totalStats;
 
@@ -361,7 +501,7 @@ AITrainingStats TicTacToeTrainer::trainTwoNetworks(NeuralNetPlayer *player1, Neu
 
         }
 #ifdef DEBUG_TRAINER
-        if(x % 1000 == 999)
+        if(x % m_printoutInterval == m_printoutInterval - 1)
         {
             print2(x + 1, " games completed.\t");
             print4("Neural network 1 won ", trainingStats1.wins, " games, tied ", trainingStats1.draws);
@@ -385,6 +525,9 @@ AITrainingStats TicTacToeTrainer::trainTwoNetworks(NeuralNetPlayer *player1, Neu
     print4("Neural network 1 won ", totalStats1.wins, " games, tied ", totalStats1.draws);
     printLine2(" and lost ", totalStats1.losses);
 #endif
+
+    if(m_numTrainingIterations < m_printoutInterval)
+        return trainingStats1;
 
     return totalStats = trainingStats1;
 
@@ -456,12 +599,13 @@ AITrainingStats TicTacToeTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *pla
                 {
                     player->endStateReached(current, endState, false);
 
-                    if(endState == Elements::P1WIN)
+                    if(endState == (Elements::GameState)player->getPlayer())
                         ++trainingStats.wins;
                     else if(endState == Elements::DRAW)
                         ++trainingStats.draws;
                     else
                         ++trainingStats.losses;
+
                     break;
                 }
             }
@@ -470,7 +614,7 @@ AITrainingStats TicTacToeTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *pla
                 Elements::GameState endState = m_rulesEngine->testBoard(current->getCurrentGrid());
                 player->endStateReached(current, endState, true);
 
-                if(endState == Elements::P1WIN)
+                if(endState == (Elements::GameState)player->getPlayer())
                     ++trainingStats.wins;
                 else if(endState == Elements::DRAW)
                     ++trainingStats.draws;
@@ -484,7 +628,7 @@ AITrainingStats TicTacToeTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *pla
         player->reset();
 
 #ifdef DEBUG_TRAINER
-        if(x % 1000 == 999)
+        if(x % m_printoutInterval == m_printoutInterval - 1)
         {
             print2(x + 1, " games completed.\t");
             print4("Neural network won ", trainingStats.wins, " games, tied ", trainingStats.draws);
@@ -505,6 +649,132 @@ AITrainingStats TicTacToeTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *pla
 
     player->setCalcAsMax(calcAsMax);
 
+    if(m_numTrainingIterations < m_printoutInterval)
+        return trainingStats;
+    return totalStats;
+
+}
+
+AITrainingStats TicTacToeTrainer::trainVersusMoveBlocker(NeuralNetPlayer *player, GameDatabase *database) const
+{
+    //Load the correct file into the database.
+    database->setDBFile(FILENAME_BLOCKER);
+
+    AITrainingStats trainingStats, totalStats;
+    trainingStats.init();
+
+    Elements::PlayerType currentPlayer;
+
+    srand(time(NULL));
+
+    //If player 2 is passed in here, it will be trained incorrectly unless calcAsMax is reset.
+    bool calcAsMax = player->getCalcAsMax();
+    player->setCalcAsMax(true);
+
+    //Train on move tree.
+    Grid *userOutput = m_rulesEngine->createGameSpecificGrid();
+
+    Grid *startingGrid = m_rulesEngine->createGameSpecificGrid();
+
+    BoardState *root = new BoardState(startingGrid, NULL, Elements::PLAYER_1, m_rulesEngine);
+    BoardState *current;
+
+    for(int x = 0; x < m_numTrainingIterations; ++x)
+    {
+        currentPlayer = Elements::PLAYER_1;
+
+        root->deleteNextStates();
+        current = root;
+#ifdef DEBUG_TDNEURALNET
+        printLine2("Game #", x);
+#endif
+        while(true/*keep going until the loop breaks internally*/)
+        {
+            //Generate the grids for the next move.
+            current->genNextStates(1, m_rulesEngine);
+
+            //Choose a move.
+            player->makeMove(current, userOutput);
+
+            //previous = current;
+
+            //Move down the tree.
+            current = current->getState(userOutput);
+
+            if(m_rulesEngine->testBoard(current->getCurrentGrid()) == Elements::NORMAL)
+            {
+                //Train the network by always choosing the first move in the list.
+                //Not very good for learning, but it should give a good test.
+                current->genNextStates(DFS_TREE_DEPTH, m_rulesEngine);
+
+                moveBlocker(current, Elements::PLAYER_2, currentPlayer);
+
+                //See if the computer made the last move.
+                Elements::GameState endState = m_rulesEngine->testBoard(current->getCurrentGrid());
+                if(endState != Elements::NORMAL)
+                {
+                    trainingStats.rootMeanSquare += player->endStateReached(current, endState, false);
+
+                    if(endState == Elements::P1WIN)
+                        ++trainingStats.wins;
+                    else if(endState == Elements::DRAW)
+                        ++trainingStats.draws;
+                    else
+                        ++trainingStats.losses;
+                    break;
+                }
+            }
+            else
+            {
+                Elements::GameState endState = m_rulesEngine->testBoard(current->getCurrentGrid());
+                trainingStats.rootMeanSquare += player->endStateReached(current, endState, true);
+
+                if(endState == Elements::P1WIN)
+                    ++trainingStats.wins;
+                else if(endState == Elements::DRAW)
+                    ++trainingStats.draws;
+                else
+                    ++trainingStats.losses;
+
+                break;
+            }
+        }
+
+        player->reset();
+
+#ifdef DEBUG_TRAINER
+        if(x % m_printoutInterval == m_printoutInterval - 1)
+        {
+            print2(x + 1, " games completed.\t");
+            print4("Neural network won ", trainingStats.wins, " games, tied ", trainingStats.draws);
+            print2(" and lost ", trainingStats.losses);
+
+            trainingStats.rootMeanSquare /= m_printoutInterval;
+
+            printLine2("; root mean square: ", trainingStats.rootMeanSquare);
+            totalStats += trainingStats;
+
+/*            if(trainingStats.rootMeanSquare < 0.145)
+            {
+                cout << "Neural network is doing well enough.  Stopping training early." << endl;
+                break;
+            }*/
+
+            //Reset stats after training iteration.
+            trainingStats.init();
+        }
+#endif
+
+        //store game in database
+        database->storeGame(current);
+    }
+
+    delete root;
+
+    player->setCalcAsMax(calcAsMax);
+
+    if(m_numTrainingIterations < m_printoutInterval)
+        return trainingStats;
     return totalStats;
 
 }

@@ -41,6 +41,7 @@ public:
     void setAIBuilder(NeuralNetBuilder *AIBuilder) { m_AIBuilder = AIBuilder; }
     void setAITrainer(Trainer *trainer) { m_AITrainer = trainer; }
     void setRulesEngine(RulesEngine *rulesEngine) { m_rulesEngine = rulesEngine; }
+    //Sets the database file to the default when changing directories.
     void setDatabaseDirectory(string directory) { m_database->setDirectory(directory); m_database->setDBFile(FILENAME_USER_GAMES); }
 
     //Try to make move based on passed grid and player ID.

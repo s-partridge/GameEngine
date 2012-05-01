@@ -32,7 +32,6 @@ public:
 
     void setRulesEngine(RulesEngine *rulesEngine) { m_rulesEngine = rulesEngine; }
 
-
     void setTrain(bool train) { this->train = train; }
 
     //Make a move, confirm that it's valid, and return it.
@@ -40,6 +39,8 @@ public:
     //Make a move and return the raw results
     void getResults(const BoardState *currentState, double *&results);
     void getResults(const Grid *currentGrid, Elements::PlayerType player, double *&results);
+
+    int getHiddenLayerNeurons(int layer) { return m_neuralNetwork->getNumHiddenNeurons(layer); }
 
     //Check the next move returned from the neural network.
     //Corrected will be NULL if the neural network made a valid move.
