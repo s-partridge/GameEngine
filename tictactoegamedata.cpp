@@ -16,7 +16,8 @@ void TicTacToeGameData::init(RulesEngine *rulesEngine)
     //Generate tic-tac-toe specific states.
     TicTacToeGrid *startingGrid = new TicTacToeGrid();
 
-    m_startingState = new BoardState(startingGrid, NULL, Elements::PLAYER_1, rulesEngine, 1);
+    m_startingState = new BoardState(startingGrid, NULL, Elements::PLAYER_1, rulesEngine, DLS_SEARCH_DEPTH);
+
     m_currentState = m_startingState;
     m_turnNumber = 0;
 //    delete startingGrid;

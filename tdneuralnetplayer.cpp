@@ -1,7 +1,5 @@
 #include "tdneuralnetplayer.h"
 
-//#define USE_DLS
-
 PastWeightMatrix::PastWeightMatrix(int numRounds, int numOutputs)
     : previousOutputs(NULL), idealOutputs(NULL)
 {
@@ -111,6 +109,8 @@ TDNeuralNetPlayer::TDNeuralNetPlayer(Elements::PlayerType player, int numExpecte
         calcAsMax = false;
         m_currentRound = 1;
     }
+
+    m_searchDepth = DLS_SEARCH_DEPTH;
 }
 
 double TDNeuralNetPlayer::depthLimitedSearch(const BoardState *currentState, int searchDepth, int &bestIndex, Elements::PlayerType player)
@@ -121,11 +121,16 @@ double TDNeuralNetPlayer::depthLimitedSearch(const BoardState *currentState, int
         //There is only one output from the network for board evaluations.
         double *results = NULL;
 
-        getResults(currentState->getCurrentGrid(), player, (double *&)results);
+        getResults(currentState->getCurrentGrid(), player, results);
 
         bestIndex = DLS_EVALUATED_STATE;
 
         double retVal = results[0];
+
+#ifdef DEBUG_MOVECHOICE
+            print2(" ", retVal);
+            printLine2("\t for board: ", *currentState->getCurrentGrid());
+#endif
 
         delete [] results;
         return retVal;
@@ -145,6 +150,10 @@ double TDNeuralNetPlayer::depthLimitedSearch(const BoardState *currentState, int
         int throwaway;
 
         //Get the first result.
+#ifdef DEBUG_MOVECHOICE
+        print("Getting values for each next state: \n");
+      //  print2(" ", bestResult);
+#endif
         bestResult = depthLimitedSearch(currentState->getStateWithIndex(0), searchDepth - 1, throwaway, nextPlayer);
 
         double resultTotal = bestResult;
@@ -157,7 +166,7 @@ double TDNeuralNetPlayer::depthLimitedSearch(const BoardState *currentState, int
         for(int x = 1; x < currentState->getNumNextStates(); ++x)
         {
             nextResult  = depthLimitedSearch(currentState->getStateWithIndex(x), searchDepth - 1, throwaway, nextPlayer);
-            resultTotal += nextResult;
+            resultTotal += nextResult;            
 
             //If calcAsMax is true, look for the highest value.  Otherwise, look for the lowest.
             if(calcAsMax)
@@ -176,16 +185,25 @@ double TDNeuralNetPlayer::depthLimitedSearch(const BoardState *currentState, int
                     bestIndex = x;
                 }
             }
-
+#ifdef DEBUG_MOVECHOICE
+           // print2(" ", nextResult);
+#endif
         }
 
         //Add the value of the current state to the calculation.
         double *results = NULL;
         getResults(currentState->getCurrentGrid(), player, (double *&)results);
-        resultTotal += results[0];
+        //resultTotal += results[0];
         delete [] results;
 
+#ifdef DEBUG_MOVECHOICE
+        printLine2("\nLooking for highest valued move.  Found: ", bestResult);
+#endif
+
         //Return the highest or lowest value.
+
+        //return bestResult;
+        //Return the summation of all child routes.
         return resultTotal;
     }
     else
@@ -219,8 +237,21 @@ void TDNeuralNetPlayer::makeMove(const BoardState *currentState, Grid *&nextMove
         //Using Depth-limited search//
         //////////////////////////////
 
+        //NOTE
+        //Because of the way getResults works with CurrentPlayer, currentPlayer must be inverted
+        //before depthLimitedSearch is called.
+        Elements::PlayerType nextPlayer;
+        if(m_player == Elements::PLAYER_1)
+            nextPlayer = Elements::PLAYER_2;
+        else
+            nextPlayer = Elements::PLAYER_1;
+
         //DLS returns the value of the best state it found, but we don't really care about that.
-        depthLimitedSearch(currentState, DLS_SEARCH_DEPTH, bestIndex, m_player);
+        depthLimitedSearch(currentState, m_searchDepth, bestIndex, nextPlayer);
+
+#ifdef DEBUG_MOVECHOICE
+        printLine2("Looking for highest valued move.  Found best index: ", bestIndex);
+#endif
 
 #else
         /////////////////////////////////////////
@@ -232,7 +263,7 @@ void TDNeuralNetPlayer::makeMove(const BoardState *currentState, Grid *&nextMove
         //Create an array for the outputs.  There is only one.
 
 #ifdef DEBUG_MOVECHOICE
-            print("Getting values for each next state: ");
+            print("Getting values for each next state: \n");
 #endif
         //Collect state worth from all next states.
         for(int x = 0; x < currentState->getNumNextStates(); ++x)
@@ -242,6 +273,7 @@ void TDNeuralNetPlayer::makeMove(const BoardState *currentState, Grid *&nextMove
 
 #ifdef DEBUG_MOVECHOICE
             print2(" ", allResults[x]);
+            printLine2("\tfor board: ", *currentState->getStateWithIndex(x)->getCurrentGrid());
 #endif
         }
 
@@ -261,6 +293,7 @@ void TDNeuralNetPlayer::makeMove(const BoardState *currentState, Grid *&nextMove
             }
 #ifdef DEBUG_MOVECHOICE
             printLine2("Looking for highest valued move.  Found: ", allResults[bestIndex]);
+            printLine2("Looking for highest valued move.  Found best index: ", bestIndex);
 #endif
         }
         else

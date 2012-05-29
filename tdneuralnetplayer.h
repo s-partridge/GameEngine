@@ -6,8 +6,6 @@
 #include "tdneuralnetwork.h"
 #include "tdconstants.h"
 
-//#define DEBUG_MOVECHOICE
-
 //Used to contain a record of each set of outputs and output layer weight changes
 //for an entire game.  Meant to be stored until backpropagation starts at the end,
 //and be expandable, such that the number of game rounds is not static.

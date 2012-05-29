@@ -28,6 +28,7 @@ class ConnectFourTrainer : public Trainer
     bool printGameStrings;
     static BoardState *moveVerticalRight(BoardState *&currentState, Elements::PlayerType friendly, Elements::PlayerType opponent);
     static BoardState *moveVertical(BoardState *&currentState, Elements::PlayerType friendly, Elements::PlayerType opponent);
+    static BoardState *moveToWin(BoardState *&currentState, Elements::PlayerType friendly, Elements::PlayerType opponent);
     /*
     BoardState *moveHorizontal(BoardState *&currentState, Elements::PlayerType friendly, Elements::PlayerType opponent) const;
     */
@@ -35,6 +36,7 @@ class ConnectFourTrainer : public Trainer
     AITrainingStats trainFromDatabase(NeuralNetPlayer *player, GameDatabase *database);
     AITrainingStats trainFromDatabaseWithFile(NeuralNetPlayer *player, GameDatabase *database, string filename) const;
 
+    AITrainingStats trainVersusFunction(NeuralNetPlayer *player, GameDatabase *database, BoardState *(*trainerFunction)(BoardState *&, Elements::PlayerType, Elements::PlayerType)) const;
     AITrainingStats trainVersusSelf(NeuralNetPlayer *player, GameDatabase *database) const;
     AITrainingStats trainVersusTerriblePlayer(NeuralNetPlayer *player, GameDatabase *database) const;
     AITrainingStats trainVersusMultiple(NeuralNetPlayer *player, GameDatabase *database) const;

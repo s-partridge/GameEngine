@@ -11,7 +11,8 @@ AITrainingStats TicTacToeTrainer::trainNetwork(NeuralNetPlayer *player, GameData
 #endif
     //for(int x = 0; x < 4; ++x)
     m_numTrainingIterations /= 10;
-    trainVersusTerriblePlayer(player, database);
+//    trainVersusTerriblePlayer(player, database);
+//    trainVersusMoveBlocker(player, database);
     m_numTrainingIterations *= 10;
 #ifdef DEBUG_TRAINER
     cout << "Training versus self" << endl;
@@ -20,9 +21,9 @@ AITrainingStats TicTacToeTrainer::trainNetwork(NeuralNetPlayer *player, GameData
 #ifdef DEBUG_TRAINER
     //m_numTrainingIterations = 100;
     //m_printoutInterval = 1;
-    cout << "Training versus blocking player" << endl;
+    cout << "Training versus winning player" << endl;
 #endif
-    trainVersusMoveBlocker(player, database);
+    trainVersusFunction(player, database, moveToWin);
 #else
     printGameStrings = true;
  //   for(int x = 0; x < 5; ++x)
@@ -158,45 +159,11 @@ void switchCurrentPlayer(Elements::PlayerType &player)
     }
 }
 
-void TicTacToeTrainer::moveBlocker(BoardState *&currentState, Elements:: PlayerType friendly, Elements::PlayerType opponent) const
+void TicTacToeTrainer::moveBlocker(BoardState *&currentState, Elements:: PlayerType friendly, Elements::PlayerType opponent)
 {
-    /*    //Copy the current grid across.
-    Grid* nextGrid = m_rulesEngine->createGameSpecificGrid();
-    *nextGrid = *(currentState->getCurrentGrid());
-    bool foundMatch = false;
-
-    //Check for two-in-a-row.
-    //Check vertical columns
-    for(int x = 0; x < 3; ++x)
-    {
-        if(compareSet(nextGrid->squares[x][0], nextGrid->squares[x][1], nextGrid->squares[x][2], (Elements::GenericPieceType)opponent))
-        {
-            //Find the empty spot, if there is one; the third space could be friendly already.
-            for(int y = 0; y < 3; ++y)
-            {
-                //Simply replace the first open two-in-a-row discovered.
-                if(nextGrid->squares[x][y] == Elements::EMPTY)
-                {
-                    nextGrid->squares[x][y] = (Elements::GenericPieceType)friendly;
-                    foundMatch = true;
-                }
-            }
-        }
-    }
-
-    if(foundMatch)
-    {
-        currentState = currentState->getState(nextGrid);
-    }
-    else
-    {
-        currentState = currentState->getStateWithIndex(rand() % currentState->getNumNextStates());
-    }
-
-    delete nextGrid;*/
-
-    //Copy the current grid across.
-    Grid* nextGrid = m_rulesEngine->createGameSpecificGrid();
+    static TicTacToeRulesEngine re;
+      //Copy the current grid across.
+    Grid* nextGrid = re.createGameSpecificGrid();
     *nextGrid = *(currentState->getCurrentGrid());
     bool foundMatch = false;
 
@@ -306,6 +273,140 @@ void TicTacToeTrainer::moveBlocker(BoardState *&currentState, Elements:: PlayerT
     delete nextGrid;
 }
 
+void TicTacToeTrainer::moveToWin(BoardState *&currentState, Elements::PlayerType friendly, Elements::PlayerType opponent)
+{
+    static TicTacToeRulesEngine re;
+    //Copy the current grid across.
+    Grid* nextGrid = re.createGameSpecificGrid();
+    *nextGrid = *(currentState->getCurrentGrid());
+    bool foundMatch = false;
+
+    //The player should first try to win if it can.
+    //The comparison for wins is the same as the comparison for blocks.
+    //Therefore, these checks can be put through a do-while loop twice.
+    //Since toCheck will need to be switched during the loop anyway,
+    //I opted to use it as the condition for the do while loop.
+    //By inverting it at the beginning of the loop, I can first run through for friendly squares,
+    //Then run though for opponent squares.
+    //This also means I do not have to keep track of another counter (I am using toCheck to end the loop).
+    Elements::GenericPieceType toCheck = (Elements::GenericPieceType)opponent;
+    do
+    {
+        if(toCheck == (Elements::GenericPieceType)opponent)
+        {
+            toCheck = (Elements::GenericPieceType)friendly;
+        }
+        else
+        {
+            toCheck = (Elements::GenericPieceType)opponent;
+        }
+        //Check for two-in-a-row.
+        //Check vertical columns
+        for(int x = 0; x < 3; ++x)
+        {
+            if(!foundMatch && compareSet(nextGrid->squares[x][0], nextGrid->squares[x][1], nextGrid->squares[x][2], toCheck))
+            {
+                //Find the empty spot, if there is one; the third space could be friendly already.
+                for(int y = 0; y < 3; ++y)
+                {
+                    //Simply replace the first open two-in-a-row discovered.
+                    if(nextGrid->squares[x][y] == Elements::EMPTY)
+                    {
+                        nextGrid->squares[x][y] = (Elements::GenericPieceType)friendly;
+                        foundMatch = true;
+                    }
+                }
+            }
+        }
+
+        if(!foundMatch)
+        {//Check horizontal rows
+            for(int y = 0; y < 3; ++y)
+            {
+                if(!foundMatch && compareSet(nextGrid->squares[0][y], nextGrid->squares[1][y], nextGrid->squares[2][y], toCheck))
+                {
+                    //Find the empty spot, if there is one; the third space could be friendly already.
+                    for(int x = 0; x < 3; ++x)
+                    {
+                        //Simply replace the first open two-in-a-row discovered.
+                        if(nextGrid->squares[x][y] == Elements::EMPTY)
+                        {
+                            nextGrid->squares[x][y] = (Elements::GenericPieceType)friendly;
+                            foundMatch = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        //Check diagonals
+        if(!foundMatch)
+        {
+            if(compareSet(nextGrid->squares[0][0], nextGrid->squares[1][1], nextGrid->squares[2][2], toCheck))
+            {
+                //Find the empty spot, if there is one; the third space could be friendly already.
+                for(int x = 0; x < 3; ++x)
+                {
+                    //Simply replace the first open two-in-a-row discovered.
+                    if(nextGrid->squares[x][x] == Elements::EMPTY)
+                    {
+                        nextGrid->squares[x][x] = (Elements::GenericPieceType)friendly;
+                        foundMatch = true;
+                    }
+                }
+            }
+        }
+
+        if(!foundMatch)
+        {
+            if(compareSet(nextGrid->squares[0][2], nextGrid->squares[1][1], nextGrid->squares[2][0], toCheck))
+            {
+                //Find the empty spot, if there is one; the third space could be friendly already.
+                for(int x = 0, y = 2; x < 3; ++x, --y)
+                {
+                    //Simply replace the first open two-in-a-row discovered.
+                    if(nextGrid->squares[x][y] == Elements::EMPTY)
+                    {
+                        nextGrid->squares[x][y] = (Elements::GenericPieceType)friendly;
+                        foundMatch = true;
+                    }
+                }
+            }
+        }
+    }while(toCheck == friendly);
+
+    BoardState *tempState;
+    //Only do this if no sets were found.
+    if(!foundMatch)
+    {
+        tempState = currentState->getStateWithIndex(rand() % currentState->getNumNextStates());
+
+#ifdef DEBUG_TDNEURALNET
+        printLine("Moved randomly");
+#endif
+    }
+    //Otherwise, move to the blocked state.
+    else
+    {
+        tempState = currentState->getState(nextGrid);
+
+#ifdef DEBUG_TDNEURALNET
+        printLine("Found match");
+#endif
+    }
+
+    if(tempState == NULL)
+    {
+        cerr << "WARNING: The state being transitioned to is invalid.\n";
+        cerr << "Current state address: " << currentState;
+        cerr << "\nCurrent state grid:\t" << *(currentState->getCurrentGrid()) << endl;
+        cerr << "Attempted state grid:\t" << *(nextGrid) << endl;
+        exit(1);
+    }
+    currentState = tempState;
+    delete nextGrid;
+}
+
 AITrainingStats TicTacToeTrainer::trainVersusSelf(NeuralNetPlayer *player, GameDatabase *database) const
 {
     //Load the correct file into the database.
@@ -342,7 +443,7 @@ AITrainingStats TicTacToeTrainer::trainVersusSelf(NeuralNetPlayer *player, GameD
             ++numRounds;
             //Generate the grids for the next move.
 
-            current->genNextStates(DFS_TREE_DEPTH, m_rulesEngine);
+            current->genNextStates(player->searchDepth(), m_rulesEngine);
 
             //Switch between looking for best move for p1 and best move for p2.
             if(numRounds % 2)
@@ -440,7 +541,7 @@ AITrainingStats TicTacToeTrainer::trainTwoNetworks(NeuralNetPlayer *player1, Neu
 
             //Generate the grids for the next move.
 
-            current->genNextStates(DFS_TREE_DEPTH, m_rulesEngine);
+            current->genNextStates(currentNNPlayer->searchDepth(), m_rulesEngine);
 
             //Choose a move.
             currentNNPlayer->makeMove(current, userOutput);
@@ -583,7 +684,7 @@ AITrainingStats TicTacToeTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *pla
             {
                 //Train the network by always choosing the first move in the list.
                 //Not very good for learning, but it should give a good test.
-                current->genNextStates(DFS_TREE_DEPTH, m_rulesEngine);
+                current->genNextStates(player->searchDepth(), m_rulesEngine);
 
                 //Randomly select a move.  Terrible play, maybe.  But it will expose the neural network to
                 //a wider variety of moves that a "skilled" player.
@@ -655,6 +756,306 @@ AITrainingStats TicTacToeTrainer::trainVersusTerriblePlayer(NeuralNetPlayer *pla
 
 }
 
+AITrainingStats TicTacToeTrainer::trainVersusFunction(NeuralNetPlayer *player, GameDatabase *database, void (*trainerFunction)(BoardState *&, Elements::PlayerType, Elements::PlayerType)) const
+{
+    //Load the correct file into the database.
+    database->setDBFile(FILENAME_BLOCKER);
+
+    AITrainingStats trainingStats, totalStats;
+    trainingStats.init();
+
+    Elements::PlayerType currentPlayer;
+
+    srand(time(NULL));
+
+    //If player 2 is passed in here, it will be trained incorrectly unless calcAsMax is reset.
+    bool calcAsMax = player->getCalcAsMax();
+    player->setCalcAsMax(true);
+
+    //Train on move tree.
+    Grid *userOutput = m_rulesEngine->createGameSpecificGrid();
+
+    Grid *startingGrid = m_rulesEngine->createGameSpecificGrid();
+
+    BoardState *root = new BoardState(startingGrid, NULL, Elements::PLAYER_1, m_rulesEngine);
+    BoardState *current;
+
+    bool playerMovedFirst = true;
+
+    for(int x = 0; x < m_numTrainingIterations; ++x)
+    {
+        currentPlayer = Elements::PLAYER_1;
+
+        root->deleteNextStates();
+        current = root;
+#ifdef DEBUG_TDNEURALNET
+        printLine2("Game #", x);
+#endif
+
+        //Set the player to first.
+      /*  playerMovedFirst = true;
+        player->setCalcAsMax(true);
+
+        //randomly let the trainer move first.
+        if(rand() % 2)
+        {
+            //Set the player to second.
+            player->setCalcAsMax(false);
+            current->genNextStates(player->searchDepth(), m_rulesEngine);
+            playerMovedFirst = false;
+            currentPlayer = Elements::PLAYER_2;
+            trainerFunction(current, Elements::PLAYER_1, currentPlayer);
+        }*/
+
+        while(true/*keep going until the loop breaks internally*/)
+        {
+            //Generate the grids for the next move.
+            current->genNextStates(player->searchDepth(), m_rulesEngine);
+
+            //Choose a move.
+            player->makeMove(current, userOutput);
+
+            //previous = current;
+
+            //Move down the tree.
+            current = current->getState(userOutput);
+
+            if(m_rulesEngine->testBoard(current->getCurrentGrid()) == Elements::NORMAL)
+            {
+                //Train the network by always choosing the first move in the list.
+                //Not very good for learning, but it should give a good test.
+                current->genNextStates(player->searchDepth(), m_rulesEngine);
+
+                if(playerMovedFirst)
+                {
+                    trainerFunction(current, Elements::PLAYER_2, currentPlayer);
+                }
+                else
+                {
+                    trainerFunction(current, Elements::PLAYER_1, currentPlayer);
+                }
+
+                //See if the computer made the last move.
+                Elements::GameState endState = m_rulesEngine->testBoard(current->getCurrentGrid());
+                if(endState != Elements::NORMAL)
+                {
+                    trainingStats.rootMeanSquare += player->endStateReached(current, endState, false);
+
+                    if(playerMovedFirst)
+                    {
+                        if(endState == Elements::P1WIN)
+                            ++trainingStats.wins;
+                        else if(endState == Elements::DRAW)
+                            ++trainingStats.draws;
+                        else
+                            ++trainingStats.losses;
+                    }
+                    else
+                    {
+                        if(endState == Elements::P2WIN)
+                            ++trainingStats.wins;
+                        else if(endState == Elements::DRAW)
+                            ++trainingStats.draws;
+                        else
+                            ++trainingStats.losses;
+                    }
+                    break;
+                }
+            }
+            else
+            {
+                Elements::GameState endState = m_rulesEngine->testBoard(current->getCurrentGrid());
+                trainingStats.rootMeanSquare += player->endStateReached(current, endState, true);
+
+                if(endState == Elements::P1WIN)
+                    ++trainingStats.wins;
+                else if(endState == Elements::DRAW)
+                    ++trainingStats.draws;
+                else
+                    ++trainingStats.losses;
+
+                break;
+            }
+        }
+
+        player->reset();
+
+#ifdef DEBUG_TRAINER
+        if(x % m_printoutInterval == m_printoutInterval - 1)
+        {
+            BoardState *prev = current;
+
+            while(prev->getParent() != NULL)
+            {
+                for(int x = 0; x < 3; ++x)
+                {
+                    for(int y = 0; y < 3; ++y)
+                    {
+                        cout << prev->getCurrentGrid()->squares[x][y] << ' ';
+                    }
+                    cout << endl;
+                }
+                cout << endl;
+                prev = prev->getParent();
+            }
+            print2(x + 1, " games completed.\t");
+            print4("Neural network won ", trainingStats.wins, " games, tied ", trainingStats.draws);
+            print2(" and lost ", trainingStats.losses);
+
+            trainingStats.rootMeanSquare /= m_printoutInterval;
+
+            printLine2("; root mean square: ", trainingStats.rootMeanSquare);
+            totalStats += trainingStats;
+
+/*            if(trainingStats.rootMeanSquare < 0.145)
+            {
+                cout << "Neural network is doing well enough.  Stopping training early." << endl;
+                break;
+            }*/
+
+            //Reset stats after training iteration.
+            trainingStats.init();
+        }
+#endif
+
+        //store game in database
+        database->storeGame(current);
+    }
+
+    delete root;
+
+    player->setCalcAsMax(calcAsMax);
+
+    if(m_numTrainingIterations < m_printoutInterval)
+        return trainingStats;
+    return totalStats;
+
+}
+
+AITrainingStats TicTacToeTrainer::trainVersusMoveToWin(NeuralNetPlayer *player, GameDatabase *database) const
+{
+    //Load the correct file into the database.
+    database->setDBFile(FILENAME_BLOCKER);
+
+    AITrainingStats trainingStats, totalStats;
+    trainingStats.init();
+
+    Elements::PlayerType currentPlayer;
+
+    srand(time(NULL));
+
+    //If player 2 is passed in here, it will be trained incorrectly unless calcAsMax is reset.
+    bool calcAsMax = player->getCalcAsMax();
+    player->setCalcAsMax(true);
+
+    //Train on move tree.
+    Grid *userOutput = m_rulesEngine->createGameSpecificGrid();
+
+    Grid *startingGrid = m_rulesEngine->createGameSpecificGrid();
+
+    BoardState *root = new BoardState(startingGrid, NULL, Elements::PLAYER_1, m_rulesEngine);
+    BoardState *current;
+
+    for(int x = 0; x < m_numTrainingIterations; ++x)
+    {
+        currentPlayer = Elements::PLAYER_1;
+
+        root->deleteNextStates();
+        current = root;
+#ifdef DEBUG_TDNEURALNET
+        printLine2("Game #", x);
+#endif
+        while(true/*keep going until the loop breaks internally*/)
+        {
+            //Generate the grids for the next move.
+            current->genNextStates(player->searchDepth(), m_rulesEngine);
+
+            //Choose a move.
+            player->makeMove(current, userOutput);
+
+            //previous = current;
+
+            //Move down the tree.
+            current = current->getState(userOutput);
+
+            if(m_rulesEngine->testBoard(current->getCurrentGrid()) == Elements::NORMAL)
+            {
+                //Train the network by always choosing the first move in the list.
+                //Not very good for learning, but it should give a good test.
+                current->genNextStates(player->searchDepth(), m_rulesEngine);
+
+                moveBlocker(current, Elements::PLAYER_2, currentPlayer);
+
+                //See if the computer made the last move.
+                Elements::GameState endState = m_rulesEngine->testBoard(current->getCurrentGrid());
+                if(endState != Elements::NORMAL)
+                {
+                    trainingStats.rootMeanSquare += player->endStateReached(current, endState, false);
+
+                    if(endState == Elements::P1WIN)
+                        ++trainingStats.wins;
+                    else if(endState == Elements::DRAW)
+                        ++trainingStats.draws;
+                    else
+                        ++trainingStats.losses;
+                    break;
+                }
+            }
+            else
+            {
+                Elements::GameState endState = m_rulesEngine->testBoard(current->getCurrentGrid());
+                trainingStats.rootMeanSquare += player->endStateReached(current, endState, true);
+
+                if(endState == Elements::P1WIN)
+                    ++trainingStats.wins;
+                else if(endState == Elements::DRAW)
+                    ++trainingStats.draws;
+                else
+                    ++trainingStats.losses;
+
+                break;
+            }
+        }
+
+        player->reset();
+
+#ifdef DEBUG_TRAINER
+        if(x % m_printoutInterval == m_printoutInterval - 1)
+        {
+            print2(x + 1, " games completed.\t");
+            print4("Neural network won ", trainingStats.wins, " games, tied ", trainingStats.draws);
+            print2(" and lost ", trainingStats.losses);
+
+            trainingStats.rootMeanSquare /= m_printoutInterval;
+
+            printLine2("; root mean square: ", trainingStats.rootMeanSquare);
+            totalStats += trainingStats;
+
+/*            if(trainingStats.rootMeanSquare < 0.145)
+            {
+                cout << "Neural network is doing well enough.  Stopping training early." << endl;
+                break;
+            }*/
+
+            //Reset stats after training iteration.
+            trainingStats.init();
+        }
+#endif
+
+        //store game in database
+        database->storeGame(current);
+    }
+
+    delete root;
+
+    player->setCalcAsMax(calcAsMax);
+
+    if(m_numTrainingIterations < m_printoutInterval)
+        return trainingStats;
+    return totalStats;
+
+}
+
 AITrainingStats TicTacToeTrainer::trainVersusMoveBlocker(NeuralNetPlayer *player, GameDatabase *database) const
 {
     //Load the correct file into the database.
@@ -691,7 +1092,7 @@ AITrainingStats TicTacToeTrainer::trainVersusMoveBlocker(NeuralNetPlayer *player
         while(true/*keep going until the loop breaks internally*/)
         {
             //Generate the grids for the next move.
-            current->genNextStates(1, m_rulesEngine);
+            current->genNextStates(player->searchDepth(), m_rulesEngine);
 
             //Choose a move.
             player->makeMove(current, userOutput);
@@ -705,7 +1106,7 @@ AITrainingStats TicTacToeTrainer::trainVersusMoveBlocker(NeuralNetPlayer *player
             {
                 //Train the network by always choosing the first move in the list.
                 //Not very good for learning, but it should give a good test.
-                current->genNextStates(DFS_TREE_DEPTH, m_rulesEngine);
+                current->genNextStates(player->searchDepth(), m_rulesEngine);
 
                 moveBlocker(current, Elements::PLAYER_2, currentPlayer);
 

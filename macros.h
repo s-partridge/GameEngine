@@ -12,6 +12,7 @@
 //#define DEBUG_GAMEDATA
 //#define DEBUG_VIEW
 #define DEBUG_TRAINER
+//#define DEBUG_MOVECHOICE
 //#define DEBUG_NN_ACCBLAMES
 //#define DEBUG_NEURON
 //#define DEBUG_NEURON_SUMMATION

@@ -4,6 +4,7 @@
 #include <map>
 #include "trainer.h"
 #include "tictactoegrid.h"
+#include "tictactoerulesengine.h"
 #include "boardstate.h"
 #include "datatypes.h"
 #include "movetablebuilder.h"
@@ -37,11 +38,17 @@ class TicTacToeTrainer : public Trainer
 
     AITrainingStats trainVersusSelf(NeuralNetPlayer *player, GameDatabase *database) const;
     AITrainingStats trainVersusTerriblePlayer(NeuralNetPlayer *player, GameDatabase *database) const;
+
+    //Allows training by passing the training function in as a parameter.  More dynamic, and keeps me from having to create different calling functions like those below.
+    AITrainingStats trainVersusFunction(NeuralNetPlayer *player, GameDatabase *database, void (*trainerFunction)(BoardState *&, Elements::PlayerType, Elements::PlayerType)) const;
+
+    AITrainingStats trainVersusMoveToWin(NeuralNetPlayer *player, GameDatabase *database) const;
     AITrainingStats trainVersusMoveBlocker(NeuralNetPlayer *player, GameDatabase *database) const;
     AITrainingStats trainFromDatabase(NeuralNetPlayer *player, GameDatabase *database);
     AITrainingStats trainFromDatabaseWithFile(NeuralNetPlayer *player, GameDatabase *database, string filename) const;
 
-    void moveBlocker(BoardState *&currentState, Elements::PlayerType friendly, Elements::PlayerType opponent) const;
+    static void moveBlocker(BoardState *&currentState, Elements::PlayerType friendly, Elements::PlayerType opponent);
+    static void moveToWin(BoardState *&currentState, Elements::PlayerType friendly, Elements::PlayerType opponent);
 
     void trainOnce(NeuralNetPlayer *player, Grid *gameBoard, Grid *userOutput,
                    double *&expected, double *&outputs, Elements::PlayerType currentPlayer,

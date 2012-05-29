@@ -10,7 +10,7 @@
 
 //There is no way that this can be zero unless the random number generated actually is zero
 //if RANDOM_MOVE_INTERVAL > RAND_MAX.
-#define RANDOM_MOVE_INTERVAL 90 //RAND_MAX
+#define RANDOM_MOVE_INTERVAL 45 //RAND_MAX
 
 #define TD_WIN      1.0
 #define TD_LOSS     -1.0
@@ -19,7 +19,8 @@
 //Constants for depth-limited search
 //Represents a value for states that have been directly evaluated, rather than having their children evaluated.
 //Search depth determines how many moves ahead the player will look when making a move.
-#define DLS_SEARCH_DEPTH    1
+#define USE_DLS
+#define DLS_SEARCH_DEPTH    3
 #define DLS_EVALUATED_STATE -1
 
 #endif // TDCONSTANTS_H

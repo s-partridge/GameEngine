@@ -48,6 +48,8 @@ public:
     //Convert a double precision value to its piece type equivalent, relative to the current player.
     Elements::GenericPieceType doubleToPieceType(Elements::PlayerType player, double value) const;
 
+    Grid *createGameSpecificGrid() const;
+
 private:
     //Returns the worth of a game, assuming that the state passed in is not 'NORMAL'.
     //Used in worthOfState to quickly handle end game states.
@@ -65,8 +67,6 @@ private:
     //If countBlocked is true, the funtion will return the number of blocked sets it finds (E.G. XOX, where O is blocking)
     //If false, the function will return the number of open sets it finds (E.G X_X, where the center is open)
     int countDoubleSpace(const Grid *boardState, Elements::GenericPieceType toCount, bool countBlocked) const;
-
-    Grid *createGameSpecificGrid() const;
 };
 
 #endif // TICTACTOERULESENGINE_H

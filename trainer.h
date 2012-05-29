@@ -20,9 +20,6 @@
 #include "rulesengine.h"
 #include "gamedatabase.h"
 
-//Used when generating a move tree to determine how much of it should be created at once.
-#define DFS_TREE_DEPTH 3
-
 class Trainer
 {
 protected:

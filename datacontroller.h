@@ -2,6 +2,7 @@
 #define DATACONTROLLER_H
 
 #include "gamedata.h"
+#include "tdconstants.h"
 #include "statisticsdata.h"
 #include "rulesengine.h"
 #include "statisticsdata.h"
@@ -46,7 +47,7 @@ public:
     void resetTree() { m_moveTree->resetBoard(m_rulesEngine); }
 
     //Instruct the move tree to build more layers in the tree.
-    void genereateNextLayers(int numLayers = 1) { m_moveTree->genNextMoves(numLayers, m_rulesEngine); }
+    void genereateNextLayers(int numLayers = 1) { m_moveTree->genNextMoves(DLS_SEARCH_DEPTH, m_rulesEngine); }
 
 private:
     GameData *m_moveTree;

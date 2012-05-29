@@ -26,7 +26,7 @@
 #define DOUBLE_SIZE         8
 
 //Number of iterations to train a neural network in one set.
-#define NUM_TRAINING_ITERATIONS 40000
+#define NUM_TRAINING_ITERATIONS 80000
 namespace NeuralNetValues
 {
     #define MAX_WEIGHT_VAL  5.0

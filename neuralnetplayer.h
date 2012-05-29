@@ -8,7 +8,7 @@
 class NeuralNetPlayer : public AIPlayer
 {
 public:
-    NeuralNetPlayer(Elements::PlayerType player) : m_neuralNetwork(NULL), m_player(player), m_rulesEngine(NULL), train(true) {}
+    NeuralNetPlayer(Elements::PlayerType player) : m_neuralNetwork(NULL), m_player(player), m_rulesEngine(NULL), train(true), m_searchDepth(1) {}
 
     void purge();
 
@@ -61,10 +61,15 @@ public:
     void setMomentum(double rate, int layerNumber) { m_neuralNetwork->setLayerMomentum(layerNumber, rate); }
     void setMomentum(double rate);
 
+    void setSearchDepth(int depth) { m_searchDepth = depth; }
+    int searchDepth() { return m_searchDepth; }
+
 protected:
     NeuralNetwork *m_neuralNetwork;
     Elements::PlayerType m_player;
     RulesEngine *m_rulesEngine;
+
+    int m_searchDepth;
 
     bool train;
 };

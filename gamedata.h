@@ -3,6 +3,7 @@
 
 #include "boardstate.h"
 #include "rulesengine.h"
+#include "tdconstants.h"
 class GameData
 {
 public:
