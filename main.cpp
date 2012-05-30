@@ -1,8 +1,8 @@
 #define SHOW_GUI
 //#define QUICK_TEST
 
-//#define TICTACTOE
-#define CONNECTFOUR
+#define TICTACTOE
+//#define CONNECTFOUR
 
 #include <QtGui/QApplication>
 

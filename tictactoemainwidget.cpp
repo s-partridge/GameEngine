@@ -11,6 +11,8 @@ void TicTacToeMainWidget::init()
     m_gridView = new GameGridView(3, 3, this);
     m_panelView = new TicTacToeControlPanelView(this);
 
+    m_gridView->setSquareSize(100, 100, 100, 100);
+
     m_centralLayout->addWidget(m_gridView);
     m_centralLayout->addWidget(m_panelView);
 

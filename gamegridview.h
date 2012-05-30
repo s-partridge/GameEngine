@@ -18,6 +18,7 @@ public:
 
     //Copy grid squares to the gameGrid object.
     void getGameGrid(Grid *gameGrid);
+    void setSquareSize(int minX, int minY, int maxX, int maxY);
 
 signals:
     void onSquareClicked(int x, int y);

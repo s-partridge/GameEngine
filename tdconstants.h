@@ -10,7 +10,7 @@
 
 //There is no way that this can be zero unless the random number generated actually is zero
 //if RANDOM_MOVE_INTERVAL > RAND_MAX.
-#define RANDOM_MOVE_INTERVAL 45 //RAND_MAX
+#define RANDOM_MOVE_INTERVAL 45//RAND_MAX
 
 #define TD_WIN      1.0
 #define TD_LOSS     -1.0

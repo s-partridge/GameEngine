@@ -40,6 +40,18 @@ GameGridView::GameGridView(int width, int height, QWidget *parent) :
     emptyGrid();
 }
 
+void GameGridView::setSquareSize(int minX, int minY, int maxX, int maxY)
+{
+    for(int x = 0; x < m_width; ++x)
+    {
+        for(int y = 0; y < m_height; ++y)
+        {
+            m_squares[x][y]->setMinimumSize(minX, minY);
+            m_squares[x][y]->setMaximumSize(maxX, maxY);
+        }
+    }
+}
+
 void GameGridView::purge()
 {
     if(m_squares != NULL)

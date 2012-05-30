@@ -191,10 +191,10 @@ double TDNeuralNetPlayer::depthLimitedSearch(const BoardState *currentState, int
         }
 
         //Add the value of the current state to the calculation.
-        double *results = NULL;
-        getResults(currentState->getCurrentGrid(), player, (double *&)results);
+       // double *results = NULL;
+        //getResults(currentState->getCurrentGrid(), player, (double *&)results);
         //resultTotal += results[0];
-        delete [] results;
+        //delete [] results;
 
 #ifdef DEBUG_MOVECHOICE
         printLine2("\nLooking for highest valued move.  Found: ", bestResult);

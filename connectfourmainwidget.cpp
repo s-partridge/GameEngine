@@ -11,6 +11,8 @@ void ConnectFourMainWidget::init()
     m_gridView = new GameGridView(C4_WIDTH, C4_HEIGHT, this);
     m_panelView = new ConnectFourControlPanelView(this);
 
+    m_gridView->setSquareSize(50, 50, 100, 100);
+
     m_centralLayout->addWidget(m_gridView);
     m_centralLayout->addWidget(m_panelView);
 
